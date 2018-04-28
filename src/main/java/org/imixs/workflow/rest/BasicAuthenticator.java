@@ -8,6 +8,14 @@ import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.xml.bind.DatatypeConverter;
 
+
+/**
+ * Client Request Filter for basic authentication
+ * 
+ * 
+ * @author rsoika
+ *
+ */
 public class BasicAuthenticator  implements ClientRequestFilter {
 
     private final String user;
