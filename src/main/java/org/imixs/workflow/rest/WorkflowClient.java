@@ -26,15 +26,19 @@ package org.imixs.workflow.rest;
  *  	Ralph Soika - Software Developer
  *******************************************************************************/
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.imixs.workflow.ItemCollection;
 import org.imixs.workflow.xml.XMLDataCollection;
+import org.imixs.workflow.xml.XMLDataCollectionAdapter;
 import org.imixs.workflow.xml.XMLDocument;
 import org.imixs.workflow.xml.XMLDocumentAdapter;
 
@@ -71,6 +75,37 @@ public class WorkflowClient {
 		client.register(filter);
 	}
 
+	/**
+	 * Process a workitem
+	 * 
+	 * @param workitem
+	 * @return updated instance
+	 */
+	public ItemCollection processWorkitem(ItemCollection workitem) {
+
+		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(workitem);
+
+		Response response = client.target(base_uri + "workflow/workitem/").request(MediaType.APPLICATION_XML)
+				.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+
+		if (response.getStatus() == 200) {
+			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+			if (data != null && data.getDocument().length > 0) {
+				// return first element of
+				return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * returns a document instance by UniqueID
+	 * 
+	 * @param uniqueid
+	 * @param items
+	 * @return document instance
+	 */
 	public ItemCollection getDocumentCustom(String uniqueid, String items) {
 
 		XMLDataCollection data = client.target(base_uri + "documents/" + uniqueid).request(MediaType.APPLICATION_XML)
@@ -89,4 +124,85 @@ public class WorkflowClient {
 
 	}
 
+	/**
+	 * returns a workItem instance by UniqueID. This is just a wrapper for
+	 * getDocumentCustom
+	 * 
+	 * @param uniqueid
+	 * @param items
+	 * @return workitem
+	 */
+	public ItemCollection getWorkitem(String uniqueid, String items) {
+		return getDocumentCustom(uniqueid, items);
+	}
+
+	/**
+	 * Returns the current task list by creator
+	 * 
+	 * @param userid
+	 * @param items
+	 * @return task list for given user
+	 */
+	public List<ItemCollection> getTaskListByCreator(String userid, int pageSize, int pageIndex, String items) {
+		return getWorkitemsByResource("/tasklist/creator/" + userid, 5, 0, null);
+	}
+
+	/**
+	 * Returns the current task list by owner
+	 * 
+	 * @param userid
+	 * @param items
+	 * @return task list for given user
+	 */
+	public List<ItemCollection> getTaskListByOwner(String userid, int pageSize, int pageIndex, String items) {
+		return getWorkitemsByResource("/tasklist/owner/" + userid, 5, 0, null);
+	}
+
+	/**
+	 * Returns the current task list by owner
+	 * 
+	 * @param userid
+	 * @param items
+	 * @return task list for given user
+	 */
+	public List<ItemCollection> getWorkflowEventsByWorkitem(ItemCollection workitem) {
+
+		XMLDataCollection data = client.target(base_uri + "workflow/workitem/events/" + workitem.getUniqueID())
+				.request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
+
+		if (data == null) {
+			return null;
+		} else {
+			return XMLDataCollectionAdapter.putDataCollection(data);
+		}
+	}
+
+	/**
+	 * Generic getter method returning a workitem resource
+	 * 
+	 * @param resource
+	 * @param pageSize
+	 * @param pageIndex
+	 * @param items
+	 * @return task list for given user
+	 */
+	private List<ItemCollection> getWorkitemsByResource(String resource, int pageSize, int pageIndex, String items) {
+
+		String uri = base_uri + "workflow/" + resource + "?";
+		if (pageSize > 0 || pageIndex > 0) {
+			uri += "&pageSize=" + pageSize + "&pageIndex=" + pageIndex;
+		}
+		if (items != null && !items.isEmpty()) {
+			uri += "&items=" + items;
+		}
+
+		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
+
+		if (data == null) {
+			return null;
+		} else {
+			return XMLDataCollectionAdapter.putDataCollection(data);
+		}
+
+	}
 }

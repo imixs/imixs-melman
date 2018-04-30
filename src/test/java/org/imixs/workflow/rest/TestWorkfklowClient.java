@@ -1,8 +1,8 @@
 package org.imixs.workflow.rest;
 
-
 import org.imixs.workflow.ItemCollection;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -11,31 +11,26 @@ import org.junit.Test;
  * @author rsoika
  * 
  */
-public class TestReportService {
- 
+public class TestWorkfklowClient {
+
 	/**
 	 * test computeDynammicDate
-	 */ 
-	@Test 
+	 */
+	@Ignore
+	@Test
 	public void testGetDocument() {
 
-		    
 		BasicAuthenticator basicAuth = new BasicAuthenticator("admin", "adminadmin");
-		JWTAuthenticator jwtAuth = new JWTAuthenticator("jwt=xxxxyyy-adminadmin");
-		
-		WorkflowClient workflowCLient=new WorkflowClient("http://localhost:8080/office-rest/");
-		
-		
-		workflowCLient.registerClientRequestFilter(jwtAuth);
+
+		WorkflowClient workflowCLient = new WorkflowClient("http://localhost:8080/office-rest/");
+
 		workflowCLient.registerClientRequestFilter(basicAuth);
-		
-		ItemCollection document=workflowCLient.getDocumentCustom("f3357f0b-20de-40ca-8aa1-4b9f43759c0b", null);
+
+		ItemCollection document = workflowCLient.getDocumentCustom("f3357f0b-20de-40ca-8aa1-4b9f43759c0b", null);
 
 		// compare result with test data
 		Assert.assertNotNull(document);
-		
-	}   
- 
-	  
+
+	}
 
 }
