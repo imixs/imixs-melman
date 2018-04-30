@@ -105,4 +105,16 @@ To create a workitem, an ItemCollection have to be created first:
 	workitem=workflowCLient.processWorkitem(workitem);
 	String unqiueID=workitem.getUniqueID();
 		
-	
+
+		
+
+## Get Workflow Events by a Workitem
+
+To get all valid workflow events for an existing process instance:
+
+
+
+	// load worktiem
+	ItemCollection workitem = workflowCLient.getWorkitem(uniqueID.get(), null);
+	// load event list
+	List<ItemCollection> events = workflowCLient.getWorkflowEventsByWorkitem(workitem);
