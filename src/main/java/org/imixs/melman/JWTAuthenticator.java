@@ -1,4 +1,4 @@
-package org.imixs.workflow.rest;
+package org.imixs.melman;
 
 import java.io.IOException;
 import java.net.URI;

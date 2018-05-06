@@ -1,5 +1,7 @@
 package org.imixs.workflow.rest;
 
+import org.imixs.melman.BasicAuthenticator;
+import org.imixs.melman.WorkflowClient;
 import org.imixs.workflow.ItemCollection;
 import org.junit.Assert;
 import org.junit.Ignore;

@@ -1,4 +1,4 @@
-package org.imixs.workflow.rest;
+package org.imixs.melman;
 /*******************************************************************************
  *  Imixs Workflow 
  *  Copyright (C) 2001, 2011 Imixs Software Solutions GmbH,  
@@ -33,6 +33,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -170,6 +172,25 @@ public class WorkflowClient {
 		XMLDataCollection data = client.target(base_uri + "workflow/workitem/events/" + workitem.getUniqueID())
 				.request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
+		if (data == null) {
+			return null;
+		} else {
+			return XMLDataCollectionAdapter.putDataCollection(data);
+		}
+	}
+	
+	
+
+	/**
+	 * Returns the custom data list by uri
+	 * 
+	 * @param userid
+	 * @param items
+	 * @return task list for given user
+	 */
+	public List<ItemCollection> getCustomDataList(String uri) {
+		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
+		
 		if (data == null) {
 			return null;
 		} else {
