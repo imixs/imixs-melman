@@ -33,8 +33,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -60,6 +58,11 @@ public class WorkflowClient {
 	private Client client = null;
 	private String base_uri = null;
 
+	/**
+	 * Initialize the client by a BASE_URL.
+	 * 
+	 * @param base_uri
+	 */
 	public WorkflowClient(String base_uri) {
 		super();
 
@@ -72,16 +75,24 @@ public class WorkflowClient {
 		client = ClientBuilder.newClient();
 	}
 
+	/**
+	 * Register a ClientRequestFilter instance.
+	 * 
+	 * @param filter
+	 *            - request filter instance.
+	 */
 	public void registerClientRequestFilter(ClientRequestFilter filter) {
 		logger.info("......register new request filter: " + filter.getClass().getSimpleName());
 		client.register(filter);
 	}
 
 	/**
-	 * Process a workitem
+	 * Process a single workitem instance. If the workitem is not yet managed by the
+	 * workflow manger a new instance will be created.
 	 * 
 	 * @param workitem
-	 * @return updated instance
+	 *            - a ItemCollection representing the workitem.
+	 * @return updated workitem instance
 	 */
 	public ItemCollection processWorkitem(ItemCollection workitem) {
 
@@ -102,15 +113,15 @@ public class WorkflowClient {
 	}
 
 	/**
-	 * returns a document instance by UniqueID
+	 * Returns a single workItem instance by UniqueID.
 	 * 
 	 * @param uniqueid
 	 * @param items
-	 * @return document instance
+	 * @return workitem
 	 */
-	public ItemCollection getDocumentCustom(String uniqueid, String items) {
+	public ItemCollection getWorkitem(String uniqueid, String items) {
 
-		XMLDataCollection data = client.target(base_uri + "documents/" + uniqueid).request(MediaType.APPLICATION_XML)
+		XMLDataCollection data = client.target(base_uri + "/" + uniqueid).request(MediaType.APPLICATION_XML)
 				.get(XMLDataCollection.class);
 
 		if (data == null) {
@@ -120,22 +131,9 @@ public class WorkflowClient {
 				return null;
 			}
 			XMLDocument xmldoc = data.getDocument()[0];
-
 			return XMLDocumentAdapter.putDocument(xmldoc);
 		}
 
-	}
-
-	/**
-	 * returns a workItem instance by UniqueID. This is just a wrapper for
-	 * getDocumentCustom
-	 * 
-	 * @param uniqueid
-	 * @param items
-	 * @return workitem
-	 */
-	public ItemCollection getWorkitem(String uniqueid, String items) {
-		return getDocumentCustom(uniqueid, items);
 	}
 
 	/**
@@ -178,8 +176,6 @@ public class WorkflowClient {
 			return XMLDataCollectionAdapter.putDataCollection(data);
 		}
 	}
-	
-	
 
 	/**
 	 * Returns the custom data list by uri
@@ -188,9 +184,9 @@ public class WorkflowClient {
 	 * @param items
 	 * @return task list for given user
 	 */
-	public List<ItemCollection> getCustomDataList(String uri) {
+	public List<ItemCollection> getCustomResource(String uri) {
 		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-		
+
 		if (data == null) {
 			return null;
 		} else {
