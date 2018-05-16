@@ -53,9 +53,9 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  */
 public class WorkflowClient {
 
-	public final static int DEFAULT_PAGE_SIZE=10;
-	public final static String DEFAULT_TYPE="workitem";
-	
+	public final static int DEFAULT_PAGE_SIZE = 10;
+	public final static String DEFAULT_TYPE = "workitem";
+
 	private final static Logger logger = Logger.getLogger(WorkflowClient.class.getName());
 
 	private Client client = null;
@@ -63,9 +63,10 @@ public class WorkflowClient {
 	private String sortBy;
 	private boolean sortReverse;
 	private String type = DEFAULT_TYPE;
-	private int pageSize=DEFAULT_PAGE_SIZE;
+	private int pageSize = DEFAULT_PAGE_SIZE;
 	private int pageIndex;
-	private String items=null;
+	private String items = null;
+
 	/**
 	 * Initialize the client by a BASE_URL.
 	 * 
@@ -94,10 +95,6 @@ public class WorkflowClient {
 		client.register(filter);
 	}
 
-	
-	
-	
-	
 	public int getPageSize() {
 		return pageSize;
 	}
@@ -124,6 +121,7 @@ public class WorkflowClient {
 
 	/**
 	 * retruns the document type. The default value is "workitem"
+	 * 
 	 * @return
 	 */
 	public String getType() {
@@ -188,10 +186,16 @@ public class WorkflowClient {
 	 * @param items
 	 * @return workitem
 	 */
-	public ItemCollection getWorkitem(String uniqueid, String items) {
+	public ItemCollection getWorkitem(String uniqueid) {
 
-		XMLDataCollection data = client.target(base_uri + "/" + uniqueid).request(MediaType.APPLICATION_XML)
-				.get(XMLDataCollection.class);
+		String uri = base_uri + "/documents/" + uniqueid;
+
+		// test items..
+		if (items != null && !items.isEmpty()) {
+			uri += "?items=" + items;
+		}
+
+		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
 		if (data == null) {
 			return null;
@@ -278,25 +282,25 @@ public class WorkflowClient {
 		if (!resource.startsWith("/")) {
 			resource = "/" + resource;
 		}
-		
+
 		String uri = base_uri + "workflow" + resource;
-		
+
 		// set type
-		uri += "?type="+getType();
-		
+		uri += "?type=" + getType();
+
 		// test pagesize, pageindex
 		if (pageSize > 0 || pageIndex > 0) {
 			uri += "&pageSize=" + pageSize + "&pageIndex=" + pageIndex;
 		}
 
 		// test sort order
-		if (getSortBy()!=null) {
-			uri += "&sortBy="+getSortBy();
+		if (getSortBy() != null) {
+			uri += "&sortBy=" + getSortBy();
 		}
 		if (isSortReverse()) {
-			uri += "&sortReverse="+isSortReverse();
+			uri += "&sortReverse=" + isSortReverse();
 		}
-		
+
 		// test items..
 		if (items != null && !items.isEmpty()) {
 			uri += "&items=" + items;
