@@ -53,14 +53,19 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  */
 public class WorkflowClient {
 
+	public final static int DEFAULT_PAGE_SIZE=10;
+	public final static String DEFAULT_TYPE="workitem";
+	
 	private final static Logger logger = Logger.getLogger(WorkflowClient.class.getName());
 
 	private Client client = null;
 	private String base_uri = null;
 	private String sortBy;
 	private boolean sortReverse;
-	private String type = null;
-
+	private String type = DEFAULT_TYPE;
+	private int pageSize=DEFAULT_PAGE_SIZE;
+	private int pageIndex;
+	private String items=null;
 	/**
 	 * Initialize the client by a BASE_URL.
 	 * 
@@ -89,16 +94,40 @@ public class WorkflowClient {
 		client.register(filter);
 	}
 
+	
+	
+	
+	
+	public int getPageSize() {
+		return pageSize;
+	}
+
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
+
+	public int getPageIndex() {
+		return pageIndex;
+	}
+
+	public void setPageIndex(int pageIndex) {
+		this.pageIndex = pageIndex;
+	}
+
+	public String getItems() {
+		return items;
+	}
+
+	public void setItems(String items) {
+		this.items = items;
+	}
+
 	/**
 	 * retruns the document type. The default value is "workitem"
 	 * @return
 	 */
 	public String getType() {
-		if (type == null) {
-			return "workitem";
-		} else {
-			return type;
-		}
+		return type;
 	}
 
 	public void setType(String type) {
@@ -183,8 +212,8 @@ public class WorkflowClient {
 	 * @param items
 	 * @return task list for given user
 	 */
-	public List<ItemCollection> getTaskListByCreator(String userid, int pageSize, int pageIndex, String items) {
-		return getWorkitemsByResource("/tasklist/creator/" + userid, pageSize, pageIndex, null);
+	public List<ItemCollection> getTaskListByCreator(String userid) {
+		return getWorkitemsByResource("/tasklist/creator/" + userid);
 	}
 
 	/**
@@ -194,8 +223,8 @@ public class WorkflowClient {
 	 * @param items
 	 * @return task list for given user
 	 */
-	public List<ItemCollection> getTaskListByOwner(String userid, int pageSize, int pageIndex, String items) {
-		return getWorkitemsByResource("/tasklist/owner/" + userid, pageSize, pageIndex, null);
+	public List<ItemCollection> getTaskListByOwner(String userid) {
+		return getWorkitemsByResource("/tasklist/owner/" + userid);
 	}
 
 	/**
@@ -244,13 +273,16 @@ public class WorkflowClient {
 	 * @param items
 	 * @return task list for given user
 	 */
-	private List<ItemCollection> getWorkitemsByResource(String resource, int pageSize, int pageIndex, String items) {
+	private List<ItemCollection> getWorkitemsByResource(String resource) {
 
 		if (!resource.startsWith("/")) {
 			resource = "/" + resource;
 		}
+		
+		String uri = base_uri + "workflow" + resource;
+		
 		// set type
-		String uri = base_uri + "workflow" + resource + "?type=" + getType();
+		uri += "?type="+getType();
 		
 		// test pagesize, pageindex
 		if (pageSize > 0 || pageIndex > 0) {
