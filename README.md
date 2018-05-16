@@ -16,7 +16,7 @@ Using Maven add the following dependencies to your project:
 	<dependency>
 		<groupId>org.imixs.workflow</groupId>
 		<artifactId>imixs-melman</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.2</version>
 		<scope>test</scope>
 	</dependency>
 
@@ -62,33 +62,38 @@ Each request against the Imixs-Workflow engine must be authenticated. For that r
 
 	....
 	// get document by UniqueID
-	ItemCollection document = workflowCLient.getDocumentCustom("f3357f0b-20de-40ca-8aa1-4b9f43759c0b", null);
+	ItemCollection document = workflowCLient.getWorkitem("f3357f0b-20de-40ca-8aa1-4b9f43759c0b");
 
 ## Get a Resultlist of workitems
 
 Imixs-Melman provides a set of getter methods to receive a list of workitems. 
-Each method expects the parameters PageSize, PageIndex and an optional item list: 
-
-	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin",5,0, null);
-
 	
 ### Get tasklist by Creator
 
 		
 	// get task list by creator with maximum 5 elements.
-	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin",5,0, null);
+	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
 
-to restrict the resultlist to only a subset of items use the 'items' param:
-
-	// get task list by creator with maximum 100 elements with subset of items
-	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin",100,0, "$processid,$modelversion,txtworkflowsummary");
-
-	
 ### Get tasklist by Owner
 
 	
 	List<ItemCollection> documents=workflowCLient.getTaskListByOwner("admin",5,0, null);
 
+
+### How to restrict the Result Set 
+Per default all WorkItems are returned with all available items. To restrict the returned WorkItem data to only a subset of items the property 'items' need to be specified:
+
+	// get task list by creator with maximum 100 elements with subset of items
+	workflowCLient.setItems("$processid,$modelversion,txtworkflowsummary");
+	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
+	
+Also the page size and page index can be limited:
+	
+	workflowCLient.setPageSize(100);
+	workflowCLient.setPageIndex(0);
+	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
+
+	
 
 ## Create a Workitem
 
