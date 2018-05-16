@@ -57,6 +57,9 @@ public class WorkflowClient {
 
 	private Client client = null;
 	private String base_uri = null;
+	private String sortBy;
+	private boolean sortReverse;
+	private String type = null;
 
 	/**
 	 * Initialize the client by a BASE_URL.
@@ -84,6 +87,43 @@ public class WorkflowClient {
 	public void registerClientRequestFilter(ClientRequestFilter filter) {
 		logger.info("......register new request filter: " + filter.getClass().getSimpleName());
 		client.register(filter);
+	}
+
+	/**
+	 * retruns the document type. The default value is "workitem"
+	 * @return
+	 */
+	public String getType() {
+		if (type == null) {
+			return "workitem";
+		} else {
+			return type;
+		}
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getSortBy() {
+		return sortBy;
+	}
+
+	public void setSortBy(String sortBy) {
+		this.sortBy = sortBy;
+	}
+
+	public boolean isSortReverse() {
+		return sortReverse;
+	}
+
+	public void setSortReverse(boolean sortReverse) {
+		this.sortReverse = sortReverse;
+	}
+
+	public void setSortOrder(String sortBy, boolean sortReverse) {
+		setSortBy(sortBy);
+		setSortReverse(sortReverse);
 	}
 
 	/**
@@ -144,7 +184,7 @@ public class WorkflowClient {
 	 * @return task list for given user
 	 */
 	public List<ItemCollection> getTaskListByCreator(String userid, int pageSize, int pageIndex, String items) {
-		return getWorkitemsByResource("/tasklist/creator/" + userid, 5, 0, null);
+		return getWorkitemsByResource("/tasklist/creator/" + userid, pageSize, pageIndex, null);
 	}
 
 	/**
@@ -155,7 +195,7 @@ public class WorkflowClient {
 	 * @return task list for given user
 	 */
 	public List<ItemCollection> getTaskListByOwner(String userid, int pageSize, int pageIndex, String items) {
-		return getWorkitemsByResource("/tasklist/owner/" + userid, 5, 0, null);
+		return getWorkitemsByResource("/tasklist/owner/" + userid, pageSize, pageIndex, null);
 	}
 
 	/**
@@ -195,7 +235,8 @@ public class WorkflowClient {
 	}
 
 	/**
-	 * Generic getter method returning a workitem resource
+	 * Generic getter method returning a list of workitems resource. All elements
+	 * are from the type=workitem"
 	 * 
 	 * @param resource
 	 * @param pageSize
@@ -205,10 +246,26 @@ public class WorkflowClient {
 	 */
 	private List<ItemCollection> getWorkitemsByResource(String resource, int pageSize, int pageIndex, String items) {
 
-		String uri = base_uri + "workflow/" + resource + "?";
+		if (!resource.startsWith("/")) {
+			resource = "/" + resource;
+		}
+		// set type
+		String uri = base_uri + "workflow" + resource + "?type=" + getType();
+		
+		// test pagesize, pageindex
 		if (pageSize > 0 || pageIndex > 0) {
 			uri += "&pageSize=" + pageSize + "&pageIndex=" + pageIndex;
 		}
+
+		// test sort order
+		if (getSortBy()!=null) {
+			uri += "&sortBy="+getSortBy();
+		}
+		if (isSortReverse()) {
+			uri += "&sortReverse="+isSortReverse();
+		}
+		
+		// test items..
 		if (items != null && !items.isEmpty()) {
 			uri += "&items=" + items;
 		}
