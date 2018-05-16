@@ -28,7 +28,7 @@ public class TestWorkfklowClient {
 
 		workflowCLient.registerClientRequestFilter(basicAuth);
 
-		ItemCollection document = workflowCLient.getWorkitem("f3357f0b-20de-40ca-8aa1-4b9f43759c0b", null);
+		ItemCollection document = workflowCLient.getWorkitem("f3357f0b-20de-40ca-8aa1-4b9f43759c0b");
 
 		// compare result with test data
 		Assert.assertNotNull(document);
