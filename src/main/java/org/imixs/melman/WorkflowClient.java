@@ -251,7 +251,7 @@ public class WorkflowClient {
 	}
 
 	/**
-	 * Returns the custom data list by uri
+	 * Returns the custom data list by uri GET
 	 * 
 	 * @param userid
 	 * @param items
@@ -259,6 +259,24 @@ public class WorkflowClient {
 	 */
 	public List<ItemCollection> getCustomResource(String uri) {
 		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
+
+		if (data == null) {
+			return null;
+		} else {
+			return XMLDataCollectionAdapter.putDataCollection(data);
+		}
+	}
+	
+
+	/**
+	 * Returns the custom data list by uri DELETE
+	 * 
+	 * @param userid
+	 * @param items
+	 * @return task list for given user
+	 */
+	public List<ItemCollection> deleteCustomResource(String uri) {
+		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).delete(XMLDataCollection.class);
 
 		if (data == null) {
 			return null;
