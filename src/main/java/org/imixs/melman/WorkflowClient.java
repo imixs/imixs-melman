@@ -59,7 +59,7 @@ public class WorkflowClient {
 	private final static Logger logger = Logger.getLogger(WorkflowClient.class.getName());
 
 	private Client client = null;
-	private String base_uri = null;
+	private String baseURI = null;
 	private String sortBy;
 	private boolean sortReverse;
 	private String type = DEFAULT_TYPE;
@@ -78,7 +78,7 @@ public class WorkflowClient {
 		if (!base_uri.endsWith("/")) {
 			base_uri = base_uri + "/";
 		}
-		this.base_uri = base_uri;
+		this.baseURI = base_uri;
 
 		logger.finest("......register jax-rs client for " + base_uri + "...");
 		client = ClientBuilder.newClient();
@@ -93,6 +93,14 @@ public class WorkflowClient {
 	public void registerClientRequestFilter(ClientRequestFilter filter) {
 		logger.info("......register new request filter: " + filter.getClass().getSimpleName());
 		client.register(filter);
+	}
+
+	public String getBaseURI() {
+		return baseURI;
+	}
+
+	public void setBaseURI(String baseURI) {
+		this.baseURI = baseURI;
 	}
 
 	public int getPageSize() {
@@ -165,7 +173,7 @@ public class WorkflowClient {
 
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(workitem);
 
-		Response response = client.target(base_uri + "workflow/workitem/").request(MediaType.APPLICATION_XML)
+		Response response = client.target(baseURI + "workflow/workitem/").request(MediaType.APPLICATION_XML)
 				.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
 
 		if (response.getStatus() == 200) {
@@ -188,7 +196,7 @@ public class WorkflowClient {
 	 */
 	public ItemCollection getWorkitem(String uniqueid) {
 
-		String uri = base_uri + "/documents/" + uniqueid;
+		String uri = baseURI + "/documents/" + uniqueid;
 
 		// test items..
 		if (items != null && !items.isEmpty()) {
@@ -240,7 +248,7 @@ public class WorkflowClient {
 	 */
 	public List<ItemCollection> getWorkflowEventsByWorkitem(ItemCollection workitem) {
 
-		XMLDataCollection data = client.target(base_uri + "workflow/workitem/events/" + workitem.getUniqueID())
+		XMLDataCollection data = client.target(baseURI + "workflow/workitem/events/" + workitem.getUniqueID())
 				.request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
 		if (data == null) {
@@ -258,15 +266,24 @@ public class WorkflowClient {
 	 * @return task list for given user
 	 */
 	public List<ItemCollection> getCustomResource(String uri) {
-		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-
+		XMLDataCollection data = null;
+		
+		// strip first / if available
+		if (uri.startsWith("/")) {
+			uri=uri.substring(1);
+		}
+		// verify if uri has protocoll
+		if (!uri.matches("\\w+\\:.*")) {
+			// add base url
+			uri=getBaseURI() + uri;
+		}
+		data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 		if (data == null) {
 			return null;
 		} else {
 			return XMLDataCollectionAdapter.putDataCollection(data);
 		}
 	}
-	
 
 	/**
 	 * Returns the custom data list by uri DELETE
@@ -301,7 +318,7 @@ public class WorkflowClient {
 			resource = "/" + resource;
 		}
 
-		String uri = base_uri + "workflow" + resource;
+		String uri = baseURI + "workflow" + resource;
 
 		// set type
 		uri += "?type=" + getType();
