@@ -84,6 +84,23 @@ public class WorkflowClient {
 		client = ClientBuilder.newClient();
 	}
 
+	
+	
+	
+	public Client getClient() {
+		return client;
+	}
+
+
+
+
+	public void setClient(Client client) {
+		this.client = client;
+	}
+
+
+
+
 	/**
 	 * Register a ClientRequestFilter instance.
 	 * 
