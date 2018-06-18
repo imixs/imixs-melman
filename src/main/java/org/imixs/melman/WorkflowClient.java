@@ -188,7 +188,7 @@ public class WorkflowClient {
 	}
 
 	/**
-	 * Returns a single workItem instance by UniqueID.
+	 * Returns a single workItem or document instance by UniqueID.
 	 * 
 	 * @param uniqueid
 	 * @param items
@@ -196,7 +196,7 @@ public class WorkflowClient {
 	 */
 	public ItemCollection getWorkitem(String uniqueid) {
 
-		String uri = baseURI + "/documents/" + uniqueid;
+		String uri = baseURI + "documents/" + uniqueid;
 
 		// test items..
 		if (items != null && !items.isEmpty()) {
@@ -215,6 +215,18 @@ public class WorkflowClient {
 			return XMLDocumentAdapter.putDocument(xmldoc);
 		}
 
+	}
+
+	/**
+	 * Deletes a single workItem or document instance by UniqueID.
+	 * 
+	 * @param userid
+	 * @param items
+	 * @return task list for given user
+	 */
+	public void deleteWorkitem(String uniqueid) {
+		String uri = baseURI + "documents/" + uniqueid;
+		client.target(uri).request(MediaType.APPLICATION_XML).delete(XMLDataCollection.class);
 	}
 
 	/**
@@ -285,23 +297,8 @@ public class WorkflowClient {
 		}
 	}
 
-	/**
-	 * Returns the custom data list by uri DELETE
-	 * 
-	 * @param userid
-	 * @param items
-	 * @return task list for given user
-	 */
-	public List<ItemCollection> deleteCustomResource(String uri) {
-		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).delete(XMLDataCollection.class);
-
-		if (data == null) {
-			return null;
-		} else {
-			return XMLDataCollectionAdapter.putDataCollection(data);
-		}
-	}
-
+	
+	
 	/**
 	 * Generic getter method returning a list of workitems resource. All elements
 	 * are from the type=workitem"
