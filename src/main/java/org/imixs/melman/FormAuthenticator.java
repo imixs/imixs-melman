@@ -96,9 +96,6 @@ public class FormAuthenticator implements ClientRequestFilter {
 	 */
 	public void filter(ClientRequestContext requestContext) throws IOException {
 		if (cookies != null) {
-			
-			List<Object> dinger = requestContext.getHeaders().get("Cookie");
-			
 			requestContext.getHeaders().put("Cookie", cookies);
 		}
 	}
