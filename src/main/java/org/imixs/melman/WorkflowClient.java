@@ -27,11 +27,7 @@ package org.imixs.melman;
  *******************************************************************************/
 
 import java.util.List;
-import java.util.logging.Logger;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -51,21 +47,7 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  * @author Ralph Soika
  * 
  */
-public class WorkflowClient {
-
-	public final static int DEFAULT_PAGE_SIZE = 10;
-	public final static String DEFAULT_TYPE = "workitem";
-
-	private final static Logger logger = Logger.getLogger(WorkflowClient.class.getName());
-
-	private Client client = null;
-	private String baseURI = null;
-	private String sortBy;
-	private boolean sortReverse;
-	private String type = DEFAULT_TYPE;
-	private int pageSize = DEFAULT_PAGE_SIZE;
-	private int pageIndex;
-	private String items = null;
+public class WorkflowClient extends DocumentClient {
 
 	/**
 	 * Initialize the client by a BASE_URL.
@@ -73,117 +55,14 @@ public class WorkflowClient {
 	 * @param base_uri
 	 */
 	public WorkflowClient(String base_uri) {
-		super();
-
-		if (!base_uri.endsWith("/")) {
-			base_uri = base_uri + "/";
-		}
-		this.baseURI = base_uri;
-
-		logger.finest("......register jax-rs client for " + base_uri + "...");
-		client = ClientBuilder.newClient();
-	}
-
-	
-	
-	
-	public Client getClient() {
-		return client;
-	}
-
-
-
-
-	public void setClient(Client client) {
-		this.client = client;
-	}
-
-
-
-
-	/**
-	 * Register a ClientRequestFilter instance.
-	 * 
-	 * @param filter
-	 *            - request filter instance.
-	 */
-	public void registerClientRequestFilter(ClientRequestFilter filter) {
-		logger.info("......register new request filter: " + filter.getClass().getSimpleName());
-		client.register(filter);
-	}
-
-	public String getBaseURI() {
-		return baseURI;
-	}
-
-	public void setBaseURI(String baseURI) {
-		this.baseURI = baseURI;
-	}
-
-	public int getPageSize() {
-		return pageSize;
-	}
-
-	public void setPageSize(int pageSize) {
-		this.pageSize = pageSize;
-	}
-
-	public int getPageIndex() {
-		return pageIndex;
-	}
-
-	public void setPageIndex(int pageIndex) {
-		this.pageIndex = pageIndex;
-	}
-
-	public String getItems() {
-		return items;
-	}
-
-	public void setItems(String items) {
-		this.items = items;
-	}
-
-	/**
-	 * retruns the document type. The default value is "workitem"
-	 * 
-	 * @return
-	 */
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public String getSortBy() {
-		return sortBy;
-	}
-
-	public void setSortBy(String sortBy) {
-		this.sortBy = sortBy;
-	}
-
-	public boolean isSortReverse() {
-		return sortReverse;
-	}
-
-	public void setSortReverse(boolean sortReverse) {
-		this.sortReverse = sortReverse;
-	}
-
-	public void setSortOrder(String sortBy, boolean sortReverse) {
-		setSortBy(sortBy);
-		setSortReverse(sortReverse);
+		super(base_uri);
 	}
 
 	/**
 	 * Process a single workitem instance. If the workitem is not yet managed by the
 	 * workflow manger a new instance will be created.
 	 * 
-	 * @param workitem
-	 *            - a ItemCollection representing the workitem.
+	 * @param workitem - a ItemCollection representing the workitem.
 	 * @return updated workitem instance
 	 */
 	public ItemCollection processWorkitem(ItemCollection workitem) {
@@ -205,53 +84,31 @@ public class WorkflowClient {
 	}
 
 	/**
-	 * Returns a single workItem or document instance by UniqueID.
+	 * Returns a single workItem instance by UniqueID.
 	 * 
 	 * @param uniqueid
 	 * @param items
 	 * @return workitem
 	 */
 	public ItemCollection getWorkitem(String uniqueid) {
-
-		String uri = baseURI + "documents/" + uniqueid;
-
-		// test items..
-		if (items != null && !items.isEmpty()) {
-			uri += "?items=" + items;
-		}
-
-		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-
-		if (data == null) {
-			return null;
-		} else {
-			if (data.getDocument().length == 0) {
-				return null;
-			}
-			XMLDocument xmldoc = data.getDocument()[0];
-			return XMLDocumentAdapter.putDocument(xmldoc);
-		}
-
+		return getDocument(uniqueid);
 	}
 
 	/**
-	 * Deletes a single workItem or document instance by UniqueID.
+	 * Deletes a single workItem  instance by UniqueID.
 	 * 
 	 * @param userid
 	 * @param items
 	 * @return task list for given user
 	 */
 	public void deleteWorkitem(String uniqueid) {
-		String uri = baseURI + "documents/" + uniqueid;
-		client.target(uri).request(MediaType.APPLICATION_XML).delete(XMLDataCollection.class);
+		super.deleteDocument(uniqueid);
 	}
 
 	/**
 	 * Returns the current task list by creator
 	 * 
 	 * @param userid
-	 * @param items
-	 * @return task list for given user
 	 */
 	public List<ItemCollection> getTaskListByCreator(String userid) {
 		return getWorkitemsByResource("/tasklist/creator/" + userid);
@@ -287,35 +144,7 @@ public class WorkflowClient {
 		}
 	}
 
-	/**
-	 * Returns the custom data list by uri GET
-	 * 
-	 * @param userid
-	 * @param items
-	 * @return task list for given user
-	 */
-	public List<ItemCollection> getCustomResource(String uri) {
-		XMLDataCollection data = null;
-		
-		// strip first / if available
-		if (uri.startsWith("/")) {
-			uri=uri.substring(1);
-		}
-		// verify if uri has protocoll
-		if (!uri.matches("\\w+\\:.*")) {
-			// add base url
-			uri=getBaseURI() + uri;
-		}
-		data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-		if (data == null) {
-			return null;
-		} else {
-			return XMLDataCollectionAdapter.putDataCollection(data);
-		}
-	}
 
-	
-	
 	/**
 	 * Generic getter method returning a list of workitems resource. All elements
 	 * are from the type=workitem"
