@@ -26,6 +26,7 @@ package org.imixs.melman;
  *  	Ralph Soika - Software Developer
  *******************************************************************************/
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -58,7 +59,7 @@ public class DocumentClient {
 
 	private final static Logger logger = Logger.getLogger(DocumentClient.class.getName());
 
-	protected Client client = null;
+	// protected Client client = null;
 	protected String baseURI = null;
 	protected String sortBy;
 	protected boolean sortReverse;
@@ -66,6 +67,8 @@ public class DocumentClient {
 	protected int pageSize = DEFAULT_PAGE_SIZE;
 	protected int pageIndex;
 	protected String items = null;
+
+	protected List<ClientRequestFilter> requestFilterList;
 
 	/**
 	 * Initialize the client by a BASE_URL.
@@ -75,22 +78,22 @@ public class DocumentClient {
 	public DocumentClient(String base_uri) {
 		super();
 
+		requestFilterList = new ArrayList<ClientRequestFilter>();
+
 		if (!base_uri.endsWith("/")) {
 			base_uri = base_uri + "/";
 		}
 		this.baseURI = base_uri;
 
 		logger.finest("......register jax-rs client for " + base_uri + "...");
-		client = ClientBuilder.newClient();
+		// client = ClientBuilder.newClient();
 	}
 
-	public Client getClient() {
-		return client;
-	}
-
-	public void setClient(Client client) {
-		this.client = client;
-	}
+	/*
+	 * public Client getClient() { return client; }
+	 * 
+	 * public void setClient(Client client) { this.client = client; }
+	 */
 
 	/**
 	 * Register a ClientRequestFilter instance.
@@ -99,7 +102,9 @@ public class DocumentClient {
 	 */
 	public void registerClientRequestFilter(ClientRequestFilter filter) {
 		logger.info("......register new request filter: " + filter.getClass().getSimpleName());
-		client.register(filter);
+
+		// client.register(filter);
+		requestFilterList.add(filter);
 	}
 
 	public String getBaseURI() {
@@ -169,30 +174,54 @@ public class DocumentClient {
 	}
 
 	/**
+	 * This method creates a new javax.ws.rs.client.Client instance using the default client builder
+	 * implementation class provided by the JAX-RS implementation provider.
+	 * <p>
+	 * The method registers all known filter instances.
+	 * <p>
+	 * The client instance should be closed after the request if finished. 
+	 * 
+	 * @return javax.ws.rs.client.Client instance 
+	 */
+	public Client newClient() {
+		Client client = ClientBuilder.newClient();
+		for (ClientRequestFilter filter : requestFilterList) {
+			client.register(filter);
+		}
+		return client;
+	}
+
+	/**
 	 * Creates or updates a single document instance.
 	 * 
 	 * @param document - a ItemCollection representing the document.
 	 * @return updated document instance
 	 */
 	public ItemCollection saveDocument(ItemCollection document) {
-
+		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
+		try {
+			client = newClient();
+			Response response = client.target(baseURI + "documents/").request(MediaType.APPLICATION_XML)
+					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
 
-		Response response = client.target(baseURI + "documents/").request(MediaType.APPLICATION_XML)
-				.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+			if (response.getStatus() == 200) {
+				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+				if (data != null && data.getDocument().length > 0) {
+					// return first element of
+					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+				}
+			}
 
-		if (response.getStatus() == 200) {
-			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-			if (data != null && data.getDocument().length > 0) {
-				// return first element of
-				return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+		} finally {
+			if (client != null) {
+				client.close();
 			}
 		}
 
 		return null;
 	}
-	
-	
+
 	/**
 	 * Creates a new AdminPJobInstance
 	 * 
@@ -200,24 +229,29 @@ public class DocumentClient {
 	 * @return updated job instance
 	 */
 	public ItemCollection createAdminPJob(ItemCollection document) {
-
+		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
+		try {
+			client = newClient();
 
-		Response response = client.target(baseURI + "adminp/jobs/").request(MediaType.APPLICATION_XML)
-				.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+			Response response = client.target(baseURI + "adminp/jobs/").request(MediaType.APPLICATION_XML)
+					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
 
-		if (response.getStatus() == 200) {
-			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-			if (data != null && data.getDocument().length > 0) {
-				// return first element of
-				return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+			if (response.getStatus() == 200) {
+				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+				if (data != null && data.getDocument().length > 0) {
+					// return first element of
+					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+				}
+			}
+		} finally {
+			if (client != null) {
+				client.close();
 			}
 		}
-
 		return null;
 	}
 
-	
 	/**
 	 * Returns a single document instance by UniqueID.
 	 * 
@@ -225,26 +259,31 @@ public class DocumentClient {
 	 * @return workitem
 	 */
 	public ItemCollection getDocument(String uniqueid) {
-
+		Client client = null;
 		String uri = baseURI + "documents/" + uniqueid;
 
 		// test items..
 		if (items != null && !items.isEmpty()) {
 			uri += "?items=" + items;
 		}
+		try {
+			client = newClient();
+			XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
-		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-
-		if (data == null) {
-			return null;
-		} else {
-			if (data.getDocument().length == 0) {
+			if (data == null) {
 				return null;
+			} else {
+				if (data.getDocument().length == 0) {
+					return null;
+				}
+				XMLDocument xmldoc = data.getDocument()[0];
+				return XMLDocumentAdapter.putDocument(xmldoc);
 			}
-			XMLDocument xmldoc = data.getDocument()[0];
-			return XMLDocumentAdapter.putDocument(xmldoc);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
-
 	}
 
 	/**
@@ -253,8 +292,16 @@ public class DocumentClient {
 	 * @param userid
 	 */
 	public void deleteDocument(String uniqueid) {
-		String uri = baseURI + "documents/" + uniqueid;
-		client.target(uri).request(MediaType.APPLICATION_XML).delete(XMLDataCollection.class);
+		Client client = null;
+		try {
+			client = newClient();
+			String uri = baseURI + "documents/" + uniqueid;
+			client.target(uri).request(MediaType.APPLICATION_XML).delete();
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	/**
@@ -265,6 +312,7 @@ public class DocumentClient {
 	 * @return result list
 	 */
 	public List<ItemCollection> getCustomResource(String uri) {
+		Client client = null;
 		XMLDataCollection data = null;
 
 		// strip first / if available
@@ -276,13 +324,20 @@ public class DocumentClient {
 			// add base url
 			uri = getBaseURI() + uri;
 		}
-		data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-		if (data == null) {
-			return null;
-		} else {
-			return XMLDataCollectionAdapter.putDataCollection(data);
+
+		try {
+			client = newClient();
+			data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
+			if (data == null) {
+				return null;
+			} else {
+				return XMLDataCollectionAdapter.putDataCollection(data);
+			}
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 	}
-
 
 }

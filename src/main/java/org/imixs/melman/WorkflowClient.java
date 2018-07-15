@@ -28,6 +28,7 @@ package org.imixs.melman;
 
 import java.util.List;
 
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -66,20 +67,25 @@ public class WorkflowClient extends DocumentClient {
 	 * @return updated workitem instance
 	 */
 	public ItemCollection processWorkitem(ItemCollection workitem) {
-
+		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(workitem);
+		try {
+			client = newClient();
+			Response response = client.target(baseURI + "workflow/workitem/").request(MediaType.APPLICATION_XML)
+					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
 
-		Response response = client.target(baseURI + "workflow/workitem/").request(MediaType.APPLICATION_XML)
-				.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
-
-		if (response.getStatus() == 200) {
-			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-			if (data != null && data.getDocument().length > 0) {
-				// return first element of
-				return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+			if (response.getStatus() == 200) {
+				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+				if (data != null && data.getDocument().length > 0) {
+					// return first element of
+					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+				}
+			}
+		} finally {
+			if (client != null) {
+				client.close();
 			}
 		}
-
 		return null;
 	}
 
@@ -95,7 +101,7 @@ public class WorkflowClient extends DocumentClient {
 	}
 
 	/**
-	 * Deletes a single workItem  instance by UniqueID.
+	 * Deletes a single workItem instance by UniqueID.
 	 * 
 	 * @param userid
 	 * @param items
@@ -133,17 +139,23 @@ public class WorkflowClient extends DocumentClient {
 	 * @return task list for given user
 	 */
 	public List<ItemCollection> getWorkflowEventsByWorkitem(ItemCollection workitem) {
+		Client client = null;
+		try {
+			client = newClient();
+			XMLDataCollection data = client.target(baseURI + "workflow/workitem/events/" + workitem.getUniqueID())
+					.request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
-		XMLDataCollection data = client.target(baseURI + "workflow/workitem/events/" + workitem.getUniqueID())
-				.request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-
-		if (data == null) {
-			return null;
-		} else {
-			return XMLDataCollectionAdapter.putDataCollection(data);
+			if (data == null) {
+				return null;
+			} else {
+				return XMLDataCollectionAdapter.putDataCollection(data);
+			}
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 	}
-
 
 	/**
 	 * Generic getter method returning a list of workitems resource. All elements
@@ -156,7 +168,7 @@ public class WorkflowClient extends DocumentClient {
 	 * @return task list for given user
 	 */
 	private List<ItemCollection> getWorkitemsByResource(String resource) {
-
+		Client client = null;
 		if (!resource.startsWith("/")) {
 			resource = "/" + resource;
 		}
@@ -183,14 +195,19 @@ public class WorkflowClient extends DocumentClient {
 		if (items != null && !items.isEmpty()) {
 			uri += "&items=" + items;
 		}
+		try {
+			client = newClient();
+			XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
-		XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-
-		if (data == null) {
-			return null;
-		} else {
-			return XMLDataCollectionAdapter.putDataCollection(data);
+			if (data == null) {
+				return null;
+			} else {
+				return XMLDataCollectionAdapter.putDataCollection(data);
+			}
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
-
 	}
 }
