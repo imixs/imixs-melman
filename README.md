@@ -1,7 +1,7 @@
 # Imixs-Melman
 [![Join the chat at https://gitter.im/imixs/imixs-workflow](https://badges.gitter.im/imixs/imixs-workflow.svg)](https://gitter.im/imixs/imixs-workflow?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/imixs/imixs-melman.svg?branch=master)](https://travis-ci.org/imixs/imixs-melman)
-[![License](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000)](https://github.com/imixs/imixs-melman/blob/master/LICENSE.md)
+[![License](https://img.shields.io/aur/license/yaourt.svg?maxAge=2592000)](https://github.com/imixs/imixs-melman/blob/master/LICENSE)
 
 The goal of this project is to provide components to interact with the Imixs-Workflow Rest API. These components are agnostic from an Imixs-Workflow Implementation and can be used in a microservice architecture. The components are based on Java JAX-RS and JAX-B. 
 
