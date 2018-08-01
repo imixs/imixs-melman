@@ -174,14 +174,15 @@ public class DocumentClient {
 	}
 
 	/**
-	 * This method creates a new javax.ws.rs.client.Client instance using the default client builder
-	 * implementation class provided by the JAX-RS implementation provider.
+	 * This method creates a new javax.ws.rs.client.Client instance using the
+	 * default client builder implementation class provided by the JAX-RS
+	 * implementation provider.
 	 * <p>
 	 * The method registers all known filter instances.
 	 * <p>
-	 * The client instance should be closed after the request if finished. 
+	 * The client instance should be closed after the request if finished.
 	 * 
-	 * @return javax.ws.rs.client.Client instance 
+	 * @return javax.ws.rs.client.Client instance
 	 */
 	public Client newClient() {
 		Client client = ClientBuilder.newClient();
@@ -312,6 +313,25 @@ public class DocumentClient {
 	 * @return result list
 	 */
 	public List<ItemCollection> getCustomResource(String uri) {
+		XMLDataCollection data = null;
+		data = getCustomResourceXML(uri);
+		if (data == null) {
+			return null;
+		} else {
+			return XMLDataCollectionAdapter.putDataCollection(data);
+		}
+
+	}
+
+	/**
+	 * Returns the custom data list by uri GET as a collection of XMLDocument
+	 * elements.
+	 * 
+	 * @param userid
+	 * @param items
+	 * @return result list of XMLDocument elements
+	 */
+	public XMLDataCollection getCustomResourceXML(String uri) {
 		Client client = null;
 		XMLDataCollection data = null;
 
@@ -331,7 +351,7 @@ public class DocumentClient {
 			if (data == null) {
 				return null;
 			} else {
-				return XMLDataCollectionAdapter.putDataCollection(data);
+				return data;
 			}
 		} finally {
 			if (client != null) {
