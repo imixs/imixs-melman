@@ -27,9 +27,11 @@ package org.imixs.melman;
  *******************************************************************************/
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -49,6 +51,8 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  * 
  */
 public class WorkflowClient extends DocumentClient {
+
+	private final static Logger logger = Logger.getLogger(WorkflowClient.class.getName());
 
 	/**
 	 * Initialize the client by a BASE_URL.
@@ -81,6 +85,10 @@ public class WorkflowClient extends DocumentClient {
 					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 				}
 			}
+		} catch (ResponseProcessingException e) {
+			logger.severe("error requesting process document -> " + e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (client != null) {
 				client.close();
@@ -145,16 +153,19 @@ public class WorkflowClient extends DocumentClient {
 			XMLDataCollection data = client.target(baseURI + "workflow/workitem/events/" + workitem.getUniqueID())
 					.request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
-			if (data == null) {
-				return null;
-			} else {
+			if (data != null) {
 				return XMLDataCollectionAdapter.putDataCollection(data);
 			}
+		} catch (ResponseProcessingException e) {
+			logger.severe("error requesting get events -> " + e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (client != null) {
 				client.close();
 			}
 		}
+		return null;
 	}
 
 	/**
@@ -198,16 +209,18 @@ public class WorkflowClient extends DocumentClient {
 		try {
 			client = newClient();
 			XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-
-			if (data == null) {
-				return null;
-			} else {
+			if (data != null) {
 				return XMLDataCollectionAdapter.putDataCollection(data);
 			}
+		} catch (ResponseProcessingException e) {
+			logger.severe("error requesting " + resource + " -> " + e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();			
 		} finally {
 			if (client != null) {
 				client.close();
 			}
 		}
+		return null;
 	}
 }

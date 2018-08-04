@@ -34,6 +34,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -59,7 +60,6 @@ public class DocumentClient {
 
 	private final static Logger logger = Logger.getLogger(DocumentClient.class.getName());
 
-	// protected Client client = null;
 	protected String baseURI = null;
 	protected String sortBy;
 	protected boolean sortReverse;
@@ -69,6 +69,7 @@ public class DocumentClient {
 	protected String items = null;
 
 	protected List<ClientRequestFilter> requestFilterList;
+	protected String errorMessage = null;
 
 	/**
 	 * Initialize the client by a BASE_URL.
@@ -86,14 +87,9 @@ public class DocumentClient {
 		this.baseURI = base_uri;
 
 		logger.finest("......register jax-rs client for " + base_uri + "...");
-		// client = ClientBuilder.newClient();
 	}
 
-	/*
-	 * public Client getClient() { return client; }
-	 * 
-	 * public void setClient(Client client) { this.client = client; }
-	 */
+
 
 	/**
 	 * Register a ClientRequestFilter instance.
@@ -101,7 +97,7 @@ public class DocumentClient {
 	 * @param filter - request filter instance.
 	 */
 	public void registerClientRequestFilter(ClientRequestFilter filter) {
-		logger.info("......register new request filter: " + filter.getClass().getSimpleName());
+		logger.finest("......register new request filter: " + filter.getClass().getSimpleName());
 
 		// client.register(filter);
 		requestFilterList.add(filter);
@@ -137,6 +133,14 @@ public class DocumentClient {
 
 	public void setItems(String items) {
 		this.items = items;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
 	}
 
 	/**
@@ -189,6 +193,7 @@ public class DocumentClient {
 		for (ClientRequestFilter filter : requestFilterList) {
 			client.register(filter);
 		}
+		setErrorMessage("");
 		return client;
 	}
 
@@ -213,7 +218,11 @@ public class DocumentClient {
 					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 				}
 			}
-
+		}
+		catch (ResponseProcessingException  e) {
+			logger.severe("error requesting save document -> "+ e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (client != null) {
 				client.close();
@@ -245,7 +254,12 @@ public class DocumentClient {
 					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 				}
 			}
-		} finally {
+		}
+		catch (ResponseProcessingException  e) {
+			logger.severe("error requesting create adminPJOb -> "+ e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();
+	} finally {
 			if (client != null) {
 				client.close();
 			}
@@ -271,20 +285,23 @@ public class DocumentClient {
 			client = newClient();
 			XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
 
-			if (data == null) {
-				return null;
-			} else {
+			if (data != null) {
 				if (data.getDocument().length == 0) {
 					return null;
 				}
 				XMLDocument xmldoc = data.getDocument()[0];
 				return XMLDocumentAdapter.putDocument(xmldoc);
 			}
+		} catch (ResponseProcessingException e) {
+			logger.severe("error requesting URL: " + uri + " -> " + e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (client != null) {
 				client.close();
 			}
 		}
+		return null;
 	}
 
 	/**
@@ -298,6 +315,10 @@ public class DocumentClient {
 			client = newClient();
 			String uri = baseURI + "documents/" + uniqueid;
 			client.target(uri).request(MediaType.APPLICATION_XML).delete();
+		} catch (ResponseProcessingException e) {
+			logger.severe("error delete request : " + uniqueid + " -> " + e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (client != null) {
 				client.close();
@@ -348,16 +369,20 @@ public class DocumentClient {
 		try {
 			client = newClient();
 			data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-			if (data == null) {
-				return null;
-			} else {
+			if (data != null) {
 				return data;
 			}
+		} catch (ResponseProcessingException e) {
+			logger.severe("error requesting URL: " + uri + " -> " + e.getMessage());
+			setErrorMessage(e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (client != null) {
 				client.close();
 			}
 		}
+		// no data!
+		return null;
 	}
 
 }
