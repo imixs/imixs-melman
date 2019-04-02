@@ -57,7 +57,6 @@ public class DocumentClient {
 
 	public final static int DEFAULT_PAGE_SIZE = 10;
 	public final static String DEFAULT_TYPE = "workitem";
-
 	private final static Logger logger = Logger.getLogger(DocumentClient.class.getName());
 
 	protected String baseURI = null;
@@ -69,7 +68,6 @@ public class DocumentClient {
 	protected String items = null;
 
 	protected List<ClientRequestFilter> requestFilterList;
-	protected String errorMessage = null;
 
 	/**
 	 * Initialize the client by a BASE_URL.
@@ -88,8 +86,6 @@ public class DocumentClient {
 
 		logger.finest("......register jax-rs client for " + base_uri + "...");
 	}
-
-
 
 	/**
 	 * Register a ClientRequestFilter instance.
@@ -133,14 +129,6 @@ public class DocumentClient {
 
 	public void setItems(String items) {
 		this.items = items;
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
 	}
 
 	/**
@@ -193,7 +181,6 @@ public class DocumentClient {
 		for (ClientRequestFilter filter : requestFilterList) {
 			client.register(filter);
 		}
-		setErrorMessage("");
 		return client;
 	}
 
@@ -202,8 +189,9 @@ public class DocumentClient {
 	 * 
 	 * @param document - a ItemCollection representing the document.
 	 * @return updated document instance
+	 * @throws RestAPIException
 	 */
-	public ItemCollection saveDocument(ItemCollection document) {
+	public ItemCollection saveDocument(ItemCollection document) throws RestAPIException {
 		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
 		try {
@@ -218,11 +206,9 @@ public class DocumentClient {
 					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 				}
 			}
-		}
-		catch (ResponseProcessingException  e) {
-			logger.severe("error requesting save document -> "+ e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();
+		} catch (ResponseProcessingException e) {
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error save document", e);
 		} finally {
 			if (client != null) {
 				client.close();
@@ -237,8 +223,9 @@ public class DocumentClient {
 	 * 
 	 * @param document - a ItemCollection representing the job.
 	 * @return updated job instance
+	 * @throws RestAPIException
 	 */
-	public ItemCollection createAdminPJob(ItemCollection document) {
+	public ItemCollection createAdminPJob(ItemCollection document) throws RestAPIException {
 		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
 		try {
@@ -254,12 +241,10 @@ public class DocumentClient {
 					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 				}
 			}
-		}
-		catch (ResponseProcessingException  e) {
-			logger.severe("error requesting create adminPJOb -> "+ e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();
-	} finally {
+		} catch (ResponseProcessingException e) {
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting create adminPJob", e);
+		} finally {
 			if (client != null) {
 				client.close();
 			}
@@ -272,8 +257,9 @@ public class DocumentClient {
 	 * 
 	 * @param uniqueid
 	 * @return workitem
+	 * @throws RestAPIException
 	 */
-	public ItemCollection getDocument(String uniqueid) {
+	public ItemCollection getDocument(String uniqueid) throws RestAPIException {
 		Client client = null;
 		String uri = baseURI + "documents/" + uniqueid;
 
@@ -293,9 +279,8 @@ public class DocumentClient {
 				return XMLDocumentAdapter.putDocument(xmldoc);
 			}
 		} catch (ResponseProcessingException e) {
-			logger.severe("error requesting URL: " + uri + " -> " + e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting URL: " + uri, e);
 		} finally {
 			if (client != null) {
 				client.close();
@@ -308,17 +293,17 @@ public class DocumentClient {
 	 * Deletes a single workItem or document instance by UniqueID.
 	 * 
 	 * @param userid
+	 * @throws RestAPIException
 	 */
-	public void deleteDocument(String uniqueid) {
+	public void deleteDocument(String uniqueid) throws RestAPIException {
 		Client client = null;
 		try {
 			client = newClient();
 			String uri = baseURI + "documents/" + uniqueid;
 			client.target(uri).request(MediaType.APPLICATION_XML).delete();
 		} catch (ResponseProcessingException e) {
-			logger.severe("error delete request : " + uniqueid + " -> " + e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete request : " + uniqueid, e);
 		} finally {
 			if (client != null) {
 				client.close();
@@ -332,8 +317,9 @@ public class DocumentClient {
 	 * @param userid
 	 * @param items
 	 * @return result list
+	 * @throws RestAPIException
 	 */
-	public List<ItemCollection> getCustomResource(String uri) {
+	public List<ItemCollection> getCustomResource(String uri) throws RestAPIException {
 		XMLDataCollection data = null;
 		data = getCustomResourceXML(uri);
 		if (data == null) {
@@ -351,8 +337,9 @@ public class DocumentClient {
 	 * @param userid
 	 * @param items
 	 * @return result list of XMLDocument elements
+	 * @throws RestAPIException
 	 */
-	public XMLDataCollection getCustomResourceXML(String uri) {
+	public XMLDataCollection getCustomResourceXML(String uri) throws RestAPIException {
 		Client client = null;
 		XMLDataCollection data = null;
 
@@ -373,9 +360,8 @@ public class DocumentClient {
 				return data;
 			}
 		} catch (ResponseProcessingException e) {
-			logger.severe("error requesting URL: " + uri + " -> " + e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting URL: " + uri, e);
 		} finally {
 			if (client != null) {
 				client.close();

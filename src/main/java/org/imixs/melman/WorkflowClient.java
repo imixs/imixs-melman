@@ -52,6 +52,9 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  */
 public class WorkflowClient extends DocumentClient {
 
+	public static final String ITEM_ERROR_CODE = "$error_code";
+	public static final String ITEM_ERROR_MESSAGE = "$error_message";
+
 	private final static Logger logger = Logger.getLogger(WorkflowClient.class.getName());
 
 	/**
@@ -69,8 +72,10 @@ public class WorkflowClient extends DocumentClient {
 	 * 
 	 * @param workitem - a ItemCollection representing the workitem.
 	 * @return updated workitem instance
+	 * @throws RestAPIException
 	 */
-	public ItemCollection processWorkitem(ItemCollection workitem) {
+	public ItemCollection processWorkitem(ItemCollection workitem) throws RestAPIException {
+		logger.finest("......process workitem...");
 		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(workitem);
 		try {
@@ -78,17 +83,26 @@ public class WorkflowClient extends DocumentClient {
 			Response response = client.target(baseURI + "workflow/workitem/").request(MediaType.APPLICATION_XML)
 					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
 
-			if (response.getStatus() == 200) {
-				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-				if (data != null && data.getDocument().length > 0) {
+			// read result...
+			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+
+			if (data != null && data.getDocument().length > 0) {
+				ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+				// HTTP OK?
+				if (response.getStatus() == 200) {
 					// return first element of
-					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+
+					return result;
+				} else {
+					// handle error code...
+					throw new RestAPIException(WorkflowClient.class.getSimpleName(),
+							result.getItemValueString(ITEM_ERROR_CODE), result.getItemValueString(ITEM_ERROR_MESSAGE));
 				}
 			}
 		} catch (ResponseProcessingException e) {
-			logger.severe("error requesting process document -> " + e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();
+			throw new RestAPIException(WorkflowClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting process document", e);
+
 		} finally {
 			if (client != null) {
 				client.close();
@@ -103,8 +117,9 @@ public class WorkflowClient extends DocumentClient {
 	 * @param uniqueid
 	 * @param items
 	 * @return workitem
+	 * @throws RestAPIException
 	 */
-	public ItemCollection getWorkitem(String uniqueid) {
+	public ItemCollection getWorkitem(String uniqueid) throws RestAPIException {
 		return getDocument(uniqueid);
 	}
 
@@ -114,8 +129,9 @@ public class WorkflowClient extends DocumentClient {
 	 * @param userid
 	 * @param items
 	 * @return task list for given user
+	 * @throws RestAPIException
 	 */
-	public void deleteWorkitem(String uniqueid) {
+	public void deleteWorkitem(String uniqueid) throws RestAPIException {
 		super.deleteDocument(uniqueid);
 	}
 
@@ -123,8 +139,9 @@ public class WorkflowClient extends DocumentClient {
 	 * Returns the current task list by creator
 	 * 
 	 * @param userid
+	 * @throws RestAPIException
 	 */
-	public List<ItemCollection> getTaskListByCreator(String userid) {
+	public List<ItemCollection> getTaskListByCreator(String userid) throws RestAPIException {
 		return getWorkitemsByResource("/tasklist/creator/" + userid);
 	}
 
@@ -134,8 +151,9 @@ public class WorkflowClient extends DocumentClient {
 	 * @param userid
 	 * @param items
 	 * @return task list for given user
+	 * @throws RestAPIException
 	 */
-	public List<ItemCollection> getTaskListByOwner(String userid) {
+	public List<ItemCollection> getTaskListByOwner(String userid) throws RestAPIException {
 		return getWorkitemsByResource("/tasklist/owner/" + userid);
 	}
 
@@ -145,8 +163,9 @@ public class WorkflowClient extends DocumentClient {
 	 * @param userid
 	 * @param items
 	 * @return task list for given user
+	 * @throws RestAPIException
 	 */
-	public List<ItemCollection> getWorkflowEventsByWorkitem(ItemCollection workitem) {
+	public List<ItemCollection> getWorkflowEventsByWorkitem(ItemCollection workitem) throws RestAPIException {
 		Client client = null;
 		try {
 			client = newClient();
@@ -157,9 +176,9 @@ public class WorkflowClient extends DocumentClient {
 				return XMLDataCollectionAdapter.putDataCollection(data);
 			}
 		} catch (ResponseProcessingException e) {
-			logger.severe("error requesting get events -> " + e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();
+			throw new RestAPIException(WorkflowClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting EventsByWorkitem", e);
+
 		} finally {
 			if (client != null) {
 				client.close();
@@ -177,8 +196,9 @@ public class WorkflowClient extends DocumentClient {
 	 * @param pageIndex
 	 * @param items
 	 * @return task list for given user
+	 * @throws RestAPIException
 	 */
-	private List<ItemCollection> getWorkitemsByResource(String resource) {
+	private List<ItemCollection> getWorkitemsByResource(String resource) throws RestAPIException {
 		Client client = null;
 		if (!resource.startsWith("/")) {
 			resource = "/" + resource;
@@ -213,9 +233,8 @@ public class WorkflowClient extends DocumentClient {
 				return XMLDataCollectionAdapter.putDataCollection(data);
 			}
 		} catch (ResponseProcessingException e) {
-			logger.severe("error requesting " + resource + " -> " + e.getMessage());
-			setErrorMessage(e.getMessage());
-			e.printStackTrace();			
+			throw new RestAPIException(WorkflowClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting " + resource, e);
 		} finally {
 			if (client != null) {
 				client.close();
