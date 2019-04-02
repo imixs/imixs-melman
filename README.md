@@ -126,3 +126,23 @@ To get all valid workflow events for an existing process instance:
 	ItemCollection workitem = workflowCLient.getWorkitem(uniqueID.get(), null);
 	// load event list
 	List<ItemCollection> events = workflowCLient.getWorkflowEventsByWorkitem(workitem);
+	
+
+
+## Error Handling
+
+The Melman Rest Client throws a _RestAPIException_ in case an API error occurred. The Imixs _RestAPIException_ inherits form the Imixs _WorkflowException_ and provides methods to evaluate the error context and error code. See the following example:
+
+
+	...
+	try {
+		workitem = workflowCLient.processWorkitem(workitem);
+	} catch (RestAPIException e) {
+		// evaluate exception
+		Assert.assertEquals("MODEL_ERROR", e.getErrorCode());
+		Assert.assertEquals("WorkflowClient", e.getErrorContext());
+		logger.info("ErrorMessage=" + e.getMessage());
+	}
+	...
+ 
+	
