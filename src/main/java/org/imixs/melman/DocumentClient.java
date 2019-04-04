@@ -26,6 +26,8 @@ package org.imixs.melman;
  *  	Ralph Soika - Software Developer
  *******************************************************************************/
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -309,6 +311,28 @@ public class DocumentClient {
 				client.close();
 			}
 		}
+	}
+
+	/**
+	 * Returns the the search result of a lucene search.
+	 * <p>
+	 * The method creates a search URL and requests a CustomResource by GET. The
+	 * lucene query is encoded by this method. The method throws a
+	 * UnsupportedEncodingException if the query string can not be encoded.
+	 * 
+	 * @param query - lucene search query
+	 * @return result list
+	 * @throws RestAPIException
+	 * @throws UnsupportedEncodingException
+	 */
+	public List<ItemCollection> searchDocuments(String query) throws RestAPIException, UnsupportedEncodingException {
+		String uri = "documents/search/";
+		// encode search query...
+		query = URLEncoder.encode(query, "UTF-8");
+		uri = uri + query;
+		// search.....
+		List<ItemCollection> searchResult = getCustomResource(uri);
+		return searchResult;
 	}
 
 	/**
