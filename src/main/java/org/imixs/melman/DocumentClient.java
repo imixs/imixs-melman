@@ -57,6 +57,9 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  */
 public class DocumentClient {
 
+	public static final String ITEM_ERROR_CODE = "$error_code";
+	public static final String ITEM_ERROR_MESSAGE = "$error_message";
+
 	public final static int DEFAULT_PAGE_SIZE = 10;
 	public final static String DEFAULT_TYPE = "workitem";
 	private final static Logger logger = Logger.getLogger(DocumentClient.class.getName());
@@ -92,7 +95,8 @@ public class DocumentClient {
 	/**
 	 * Register a ClientRequestFilter instance.
 	 * 
-	 * @param filter - request filter instance.
+	 * @param filter
+	 *            - request filter instance.
 	 */
 	public void registerClientRequestFilter(ClientRequestFilter filter) {
 		logger.finest("......register new request filter: " + filter.getClass().getSimpleName());
@@ -189,67 +193,38 @@ public class DocumentClient {
 	/**
 	 * Creates or updates a single document instance.
 	 * 
-	 * @param document - a ItemCollection representing the document.
+	 * @param document
+	 *            - a ItemCollection representing the document.
 	 * @return updated document instance
 	 * @throws RestAPIException
 	 */
 	public ItemCollection saveDocument(ItemCollection document) throws RestAPIException {
-		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
-		try {
-			client = newClient();
-			Response response = client.target(baseURI + "documents/").request(MediaType.APPLICATION_XML)
-					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+		XMLDataCollection data = postXMLDocument(baseURI + "documents/", xmlWorkitem);
 
-			if (response.getStatus() == 200) {
-				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-				if (data != null && data.getDocument().length > 0) {
-					// return first element of
-					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
-				}
-			}
-		} catch (ResponseProcessingException e) {
-			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error save document", e);
-		} finally {
-			if (client != null) {
-				client.close();
-			}
+		if (data != null && data.getDocument().length > 0) {
+			// return first element of
+			return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 		}
-
 		return null;
+
 	}
 
 	/**
 	 * Creates a new AdminPJobInstance
 	 * 
-	 * @param document - a ItemCollection representing the job.
+	 * @param document
+	 *            - a ItemCollection representing the job.
 	 * @return updated job instance
 	 * @throws RestAPIException
 	 */
 	public ItemCollection createAdminPJob(ItemCollection document) throws RestAPIException {
-		Client client = null;
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
-		try {
-			client = newClient();
+		XMLDataCollection data = postXMLDocument(baseURI + "adminp/jobs/", xmlWorkitem);
 
-			Response response = client.target(baseURI + "adminp/jobs/").request(MediaType.APPLICATION_XML)
-					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
-
-			if (response.getStatus() == 200) {
-				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-				if (data != null && data.getDocument().length > 0) {
-					// return first element of
-					return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
-				}
-			}
-		} catch (ResponseProcessingException e) {
-			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting create adminPJob", e);
-		} finally {
-			if (client != null) {
-				client.close();
-			}
+		if (data != null && data.getDocument().length > 0) {
+			// return first element of
+			return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 		}
 		return null;
 	}
@@ -320,7 +295,8 @@ public class DocumentClient {
 	 * lucene query is encoded by this method. The method throws a
 	 * UnsupportedEncodingException if the query string can not be encoded.
 	 * 
-	 * @param query - lucene search query
+	 * @param query
+	 *            - lucene search query
 	 * @return result list
 	 * @throws RestAPIException
 	 * @throws UnsupportedEncodingException
@@ -392,6 +368,65 @@ public class DocumentClient {
 			}
 		}
 		// no data!
+		return null;
+	}
+
+	/**
+	 * Posts a XMLDocument to a custom resource.
+	 * <p>
+	 * This method expects that the response is a XMLDataCollection containing the
+	 * posted document. In case of an HTTP Result other than 200=OK the method
+	 * throws an exception containing the the error_code and error_message stored in
+	 * the returnded XMLDocument
+	 * 
+	 * @param document
+	 *            - a ItemCollection representing the document.
+	 * @return updated document instance
+	 * @throws RestAPIException
+	 */
+	public XMLDataCollection postXMLDocument(String uri, XMLDocument xmlWorkitem) throws RestAPIException {
+		Client client = null;
+
+		// strip first / if available
+		if (uri.startsWith("/")) {
+			uri = uri.substring(1);
+		}
+		// verify if uri has protocoll
+		if (!uri.matches("\\w+\\:.*")) {
+			// add base url
+			uri = getBaseURI() + uri;
+		}
+
+		try {
+			client = newClient();
+			Response response = client.target(uri).request(MediaType.APPLICATION_XML)
+					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+
+			// read result...
+			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+
+			if (data != null && data.getDocument().length > 0) {
+				ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+				// HTTP OK?
+				if (response.getStatus() == 200) {
+					// return first element of
+					return data;
+				} else {
+					// handle error code...
+					throw new RestAPIException(WorkflowClient.class.getSimpleName(),
+							result.getItemValueString(ITEM_ERROR_CODE), result.getItemValueString(ITEM_ERROR_MESSAGE));
+				}
+			}
+
+		} catch (ResponseProcessingException e) {
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error post XMLDocument", e);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
+
 		return null;
 	}
 

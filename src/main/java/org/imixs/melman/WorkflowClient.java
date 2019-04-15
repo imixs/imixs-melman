@@ -30,10 +30,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.imixs.workflow.ItemCollection;
 import org.imixs.workflow.xml.XMLDataCollection;
@@ -51,9 +49,6 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  * 
  */
 public class WorkflowClient extends DocumentClient {
-
-	public static final String ITEM_ERROR_CODE = "$error_code";
-	public static final String ITEM_ERROR_MESSAGE = "$error_message";
 
 	private final static Logger logger = Logger.getLogger(WorkflowClient.class.getName());
 
@@ -76,37 +71,13 @@ public class WorkflowClient extends DocumentClient {
 	 */
 	public ItemCollection processWorkitem(ItemCollection workitem) throws RestAPIException {
 		logger.finest("......process workitem...");
-		Client client = null;
+		
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(workitem);
-		try {
-			client = newClient();
-			Response response = client.target(baseURI + "workflow/workitem/").request(MediaType.APPLICATION_XML)
-					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+		XMLDataCollection data = postXMLDocument(baseURI + "workflow/workitem/", xmlWorkitem);
 
-			// read result...
-			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-
-			if (data != null && data.getDocument().length > 0) {
-				ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
-				// HTTP OK?
-				if (response.getStatus() == 200) {
-					// return first element of
-
-					return result;
-				} else {
-					// handle error code...
-					throw new RestAPIException(WorkflowClient.class.getSimpleName(),
-							result.getItemValueString(ITEM_ERROR_CODE), result.getItemValueString(ITEM_ERROR_MESSAGE));
-				}
-			}
-		} catch (ResponseProcessingException e) {
-			throw new RestAPIException(WorkflowClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting process document", e);
-
-		} finally {
-			if (client != null) {
-				client.close();
-			}
+		if (data != null && data.getDocument().length > 0) {
+			// return first element of
+			return XMLDocumentAdapter.putDocument(data.getDocument()[0]);
 		}
 		return null;
 	}
