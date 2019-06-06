@@ -41,6 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.imixs.workflow.ItemCollection;
+import org.imixs.workflow.xml.XMLCount;
 import org.imixs.workflow.xml.XMLDataCollection;
 import org.imixs.workflow.xml.XMLDataCollectionAdapter;
 import org.imixs.workflow.xml.XMLDocument;
@@ -309,6 +310,49 @@ public class DocumentClient {
 		// search.....
 		List<ItemCollection> searchResult = getCustomResource(uri);
 		return searchResult;
+	}
+
+	/**
+	 * Counts a given lucene search result
+	 * <p>
+	 * The method returns the count of documents included in the result of a given
+	 * lucene query
+	 * 
+	 * @param query
+	 *            - lucene search query
+	 * @return count of total hits
+	 * @throws RestAPIException
+	 * @throws UnsupportedEncodingException
+	 */
+	public long countDocuments(String query) throws RestAPIException, UnsupportedEncodingException {
+		String uri = "documents/count/";
+		// encode search query...
+		query = URLEncoder.encode(query, "UTF-8");
+		uri = uri + query;
+
+		// count
+		Client client = null;
+		XMLCount xmlcount = null;
+
+		uri = getBaseURI() + uri;
+
+		try {
+			client = newClient();
+			xmlcount = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLCount.class);
+			if (xmlcount != null) {
+				return xmlcount.count;
+			}
+		} catch (ResponseProcessingException e) {
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting URL: " + uri, e);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
+		// no data!
+		return 0;
+
 	}
 
 	/**
