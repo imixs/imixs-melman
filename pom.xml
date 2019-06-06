@@ -6,7 +6,7 @@
 
 
 	<name>Imixs-Melman</name>
-	<version>1.0.8-SNAPSHOT</version>
+	<version>1.0.8</version>
 	<description>Imixs Workflow Melman </description>
 	<url>https://github.com/imixs-docker/imixs-melman</url>
 	<organization>
@@ -35,7 +35,7 @@
 		<connection>scm:git:https://github.com/imixs/imixs-melman.git</connection>
 		<developerConnection>scm:git:https://github.com/imixs/imixs-melman.git</developerConnection>
 		<url>https://github.com/imixs/imixs-melman/</url>
-		<tag>HEAD</tag>
+		<tag>imixs-melman-1.0.8</tag>
 	</scm>
 
 
