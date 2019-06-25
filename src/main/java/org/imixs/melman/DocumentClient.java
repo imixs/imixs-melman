@@ -32,11 +32,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -256,9 +256,17 @@ public class DocumentClient {
 				XMLDocument xmldoc = data.getDocument()[0];
 				return XMLDocumentAdapter.putDocument(xmldoc);
 			}
-		} catch (ResponseProcessingException e) {
+		} catch (ProcessingException e) {
+			String message=null;
+			if (e.getCause()!=null) {
+				message=e.getCause().getMessage();
+			} else {
+				message=e.getMessage();
+			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting URL: " + uri, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error request XMLDataCollection ->" +message, e);
+
+		
 		} finally {
 			if (client != null) {
 				client.close();
@@ -279,9 +287,16 @@ public class DocumentClient {
 			client = newClient();
 			String uri = baseURI + "documents/" + uniqueid;
 			client.target(uri).request(MediaType.APPLICATION_XML).delete();
-		} catch (ResponseProcessingException e) {
+		} catch (ProcessingException e) {
+			String message=null;
+			if (e.getCause()!=null) {
+				message=e.getCause().getMessage();
+			} else {
+				message=e.getMessage();
+			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete request : " + uniqueid, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete document ->" +message, e);
+
 		} finally {
 			if (client != null) {
 				client.close();
@@ -342,9 +357,17 @@ public class DocumentClient {
 			if (xmlcount != null) {
 				return xmlcount.count;
 			}
-		} catch (ResponseProcessingException e) {
+		} catch (ProcessingException e) {
+			String message=null;
+			if (e.getCause()!=null) {
+				message=e.getCause().getMessage();
+			} else {
+				message=e.getMessage();
+			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting URL: " + uri, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error countDocuments ->" +message, e);
+
+			
 		} finally {
 			if (client != null) {
 				client.close();
@@ -403,9 +426,15 @@ public class DocumentClient {
 			if (data != null) {
 				return data;
 			}
-		} catch (ResponseProcessingException e) {
+		} catch (ProcessingException e) {
+			String message=null;
+			if (e.getCause()!=null) {
+				message=e.getCause().getMessage();
+			} else {
+				message=e.getMessage();
+			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting URL: " + uri, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting custom XMLDataCollection ->" +message, e);
 		} finally {
 			if (client != null) {
 				client.close();
@@ -462,9 +491,15 @@ public class DocumentClient {
 				}
 			}
 
-		} catch (ResponseProcessingException e) {
+		} catch (ProcessingException e) {
+			String message=null;
+			if (e.getCause()!=null) {
+				message=e.getCause().getMessage();
+			} else {
+				message=e.getMessage();
+			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error post XMLDocument", e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error post XMLDocument ->" +message, e);
 		} finally {
 			if (client != null) {
 				client.close();
