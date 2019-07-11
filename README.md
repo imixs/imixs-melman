@@ -13,13 +13,13 @@ Using Maven add the following dependencies to your project:
 	<dependency>
 		<groupId>javax</groupId>
 		<artifactId>javaee-api</artifactId>
-		<version>7.0</version>
+		<version>8.0</version>
 		<scope>provided</scope>
 	</dependency>
 	<dependency>
 		<groupId>org.imixs.workflow</groupId>
 		<artifactId>imixs-melman</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.9</version>
 		<scope>test</scope>
 	</dependency>
 
