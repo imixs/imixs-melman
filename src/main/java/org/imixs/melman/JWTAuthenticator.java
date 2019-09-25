@@ -2,7 +2,6 @@ package org.imixs.melman;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.ClientRequestContext;
@@ -23,33 +22,20 @@ public class JWTAuthenticator  implements ClientRequestFilter {
 
 
     public JWTAuthenticator(String jwt) {
+    	if (jwt!=null && jwt.contains("jwt=")) {
+    		logger.warning("Wrong JWT format! JWT may not contain 'jwt=....'");
+    	}
         this.jwt = jwt;
         }
 
     public void filter(ClientRequestContext requestContext) throws IOException {
-    	
     	URI uri = requestContext.getUri();
     	
-    	String url=uri.toString();
-    	if (!url.contains("jwt=")) {
-    		logger.info("adding JSON Web Token...");
-    		if (url.contains("?")) {
-    			url+="&"+jwt;
-    		} else {
-    			url+="?"+jwt;
-    		}
-    		
-    		try {
-				requestContext.setUri(new URI(url));
-			} catch (URISyntaxException e) {
-				logger.severe("Failed to set JSON Web Token!");
-				e.printStackTrace();
-			}
-    		logger.info("update uri="+url);
-    		
-    	}
-    	
-    
+    	String url = uri.toString();
+		if (!url.contains("jwt=")) {
+			logger.info("adding JSON Web Token...");
+			requestContext.getHeaders().add("jwt", jwt);
+		}
     }   
 
 }
