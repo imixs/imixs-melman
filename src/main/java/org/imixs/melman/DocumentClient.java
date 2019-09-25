@@ -28,14 +28,11 @@ package org.imixs.melman;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -56,16 +53,16 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  * @author Ralph Soika
  * 
  */
-public class DocumentClient {
+public class DocumentClient extends AbstractClient {
 
 	public static final String ITEM_ERROR_CODE = "$error_code";
 	public static final String ITEM_ERROR_MESSAGE = "$error_message";
 
 	public final static int DEFAULT_PAGE_SIZE = 10;
 	public final static String DEFAULT_TYPE = "workitem";
+	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(DocumentClient.class.getName());
 
-	protected String baseURI = null;
 	protected String sortBy;
 	protected boolean sortReverse;
 	protected String type = DEFAULT_TYPE;
@@ -73,46 +70,16 @@ public class DocumentClient {
 	protected int pageIndex;
 	protected String items = null;
 
-	protected List<ClientRequestFilter> requestFilterList;
-
+	
 	/**
 	 * Initialize the client by a BASE_URL.
 	 * 
 	 * @param base_uri
 	 */
 	public DocumentClient(String base_uri) {
-		super();
-
-		requestFilterList = new ArrayList<ClientRequestFilter>();
-
-		if (!base_uri.endsWith("/")) {
-			base_uri = base_uri + "/";
-		}
-		this.baseURI = base_uri;
-
-		logger.finest("......register jax-rs client for " + base_uri + "...");
+		super(base_uri);
 	}
 
-	/**
-	 * Register a ClientRequestFilter instance.
-	 * 
-	 * @param filter
-	 *            - request filter instance.
-	 */
-	public void registerClientRequestFilter(ClientRequestFilter filter) {
-		logger.finest("......register new request filter: " + filter.getClass().getSimpleName());
-
-		// client.register(filter);
-		requestFilterList.add(filter);
-	}
-
-	public String getBaseURI() {
-		return baseURI;
-	}
-
-	public void setBaseURI(String baseURI) {
-		this.baseURI = baseURI;
-	}
 
 	public int getPageSize() {
 		return pageSize;
@@ -172,24 +139,7 @@ public class DocumentClient {
 		setSortReverse(sortReverse);
 	}
 
-	/**
-	 * This method creates a new javax.ws.rs.client.Client instance using the
-	 * default client builder implementation class provided by the JAX-RS
-	 * implementation provider.
-	 * <p>
-	 * The method registers all known filter instances.
-	 * <p>
-	 * The client instance should be closed after the request if finished.
-	 * 
-	 * @return javax.ws.rs.client.Client instance
-	 */
-	public Client newClient() {
-		Client client = ClientBuilder.newClient();
-		for (ClientRequestFilter filter : requestFilterList) {
-			client.register(filter);
-		}
-		return client;
-	}
+	
 
 	/**
 	 * Creates or updates a single document instance.
