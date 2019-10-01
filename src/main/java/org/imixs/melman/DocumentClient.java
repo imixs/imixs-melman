@@ -70,7 +70,6 @@ public class DocumentClient extends AbstractClient {
 	protected int pageIndex;
 	protected String items = null;
 
-	
 	/**
 	 * Initialize the client by a BASE_URL.
 	 * 
@@ -79,7 +78,6 @@ public class DocumentClient extends AbstractClient {
 	public DocumentClient(String base_uri) {
 		super(base_uri);
 	}
-
 
 	public int getPageSize() {
 		return pageSize;
@@ -139,13 +137,10 @@ public class DocumentClient extends AbstractClient {
 		setSortReverse(sortReverse);
 	}
 
-	
-
 	/**
 	 * Creates or updates a single document instance.
 	 * 
-	 * @param document
-	 *            - a ItemCollection representing the document.
+	 * @param document - a ItemCollection representing the document.
 	 * @return updated document instance
 	 * @throws RestAPIException
 	 */
@@ -164,8 +159,7 @@ public class DocumentClient extends AbstractClient {
 	/**
 	 * Creates a new AdminPJobInstance
 	 * 
-	 * @param document
-	 *            - a ItemCollection representing the job.
+	 * @param document - a ItemCollection representing the job.
 	 * @return updated job instance
 	 * @throws RestAPIException
 	 */
@@ -207,16 +201,15 @@ public class DocumentClient extends AbstractClient {
 				return XMLDocumentAdapter.putDocument(xmldoc);
 			}
 		} catch (ProcessingException e) {
-			String message=null;
-			if (e.getCause()!=null) {
-				message=e.getCause().getMessage();
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
 			} else {
-				message=e.getMessage();
+				message = e.getMessage();
 			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error request XMLDataCollection ->" +message, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error request XMLDataCollection ->" + message, e);
 
-		
 		} finally {
 			if (client != null) {
 				client.close();
@@ -238,14 +231,14 @@ public class DocumentClient extends AbstractClient {
 			String uri = baseURI + "documents/" + uniqueid;
 			client.target(uri).request(MediaType.APPLICATION_XML).delete();
 		} catch (ProcessingException e) {
-			String message=null;
-			if (e.getCause()!=null) {
-				message=e.getCause().getMessage();
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
 			} else {
-				message=e.getMessage();
+				message = e.getMessage();
 			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete document ->" +message, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete document ->" + message, e);
 
 		} finally {
 			if (client != null) {
@@ -261,8 +254,7 @@ public class DocumentClient extends AbstractClient {
 	 * lucene query is encoded by this method. The method throws a
 	 * UnsupportedEncodingException if the query string can not be encoded.
 	 * 
-	 * @param query
-	 *            - lucene search query
+	 * @param query - lucene search query
 	 * @return result list
 	 * @throws RestAPIException
 	 * @throws UnsupportedEncodingException
@@ -283,8 +275,7 @@ public class DocumentClient extends AbstractClient {
 	 * The method returns the count of documents included in the result of a given
 	 * lucene query
 	 * 
-	 * @param query
-	 *            - lucene search query
+	 * @param query - lucene search query
 	 * @return count of total hits
 	 * @throws RestAPIException
 	 * @throws UnsupportedEncodingException
@@ -308,16 +299,15 @@ public class DocumentClient extends AbstractClient {
 				return xmlcount.count;
 			}
 		} catch (ProcessingException e) {
-			String message=null;
-			if (e.getCause()!=null) {
-				message=e.getCause().getMessage();
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
 			} else {
-				message=e.getMessage();
+				message = e.getMessage();
 			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error countDocuments ->" +message, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error countDocuments ->" + message, e);
 
-			
 		} finally {
 			if (client != null) {
 				client.close();
@@ -377,14 +367,15 @@ public class DocumentClient extends AbstractClient {
 				return data;
 			}
 		} catch (ProcessingException e) {
-			String message=null;
-			if (e.getCause()!=null) {
-				message=e.getCause().getMessage();
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
 			} else {
-				message=e.getMessage();
+				message = e.getMessage();
 			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error requesting custom XMLDataCollection ->" +message, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION,
+					"error requesting custom XMLDataCollection ->" + message, e);
 		} finally {
 			if (client != null) {
 				client.close();
@@ -402,9 +393,8 @@ public class DocumentClient extends AbstractClient {
 	 * throws an exception containing the the error_code and error_message stored in
 	 * the returnded XMLDocument
 	 * 
-	 * @param document
-	 *            - a ItemCollection representing the document.
-	 * @return updated document instance
+	 * @param document - a ItemCollection representing the document.
+	 * @return updated document instance or null if no document was returned by the API
 	 * @throws RestAPIException
 	 */
 	public XMLDataCollection postXMLDocument(String uri, XMLDocument xmlWorkitem) throws RestAPIException {
@@ -425,31 +415,41 @@ public class DocumentClient extends AbstractClient {
 			Response response = client.target(uri).request(MediaType.APPLICATION_XML)
 					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
 
+			
+			
 			// read result...
-			XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-
-			if (data != null && data.getDocument().length > 0) {
-				ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
-				// HTTP OK?
-				if (response.getStatus() == 200) {
-					// return first element of
-					return data;
-				} else {
-					// handle error code...
-					throw new RestAPIException(WorkflowClient.class.getSimpleName(),
-							result.getItemValueString(ITEM_ERROR_CODE), result.getItemValueString(ITEM_ERROR_MESSAGE));
+			if (response.hasEntity()) {
+				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+				if (data != null && data.getDocument().length > 0) {
+					ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+					// HTTP OK?
+					if (response.getStatus() == 200) {
+						// return first element of
+						return data;
+					} else {
+						// handle error code...
+						throw new RestAPIException(DocumentClient.class.getSimpleName(),
+								result.getItemValueString(ITEM_ERROR_CODE),
+								result.getItemValueString(ITEM_ERROR_MESSAGE));
+					}
 				}
+			}
+			
+
+			// no object returned - so we throw a RestAPIException
+			if (response.getStatus()<300) {
+				throw new RestAPIException(DocumentClient.class.getSimpleName(),""+response.getStatus(), ""+response.getStatusInfo());
 			}
 
 		} catch (ProcessingException e) {
-			String message=null;
-			if (e.getCause()!=null) {
-				message=e.getCause().getMessage();
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
 			} else {
-				message=e.getMessage();
+				message = e.getMessage();
 			}
 			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error post XMLDocument ->" +message, e);
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error post XMLDocument ->" + message, e);
 		} finally {
 			if (client != null) {
 				client.close();
@@ -457,6 +457,7 @@ public class DocumentClient extends AbstractClient {
 		}
 
 		return null;
+		
 	}
 
 }
