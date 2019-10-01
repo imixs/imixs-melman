@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.ext.Provider;
 
 /**
  * Client request Filter for Imixs-JWT 
@@ -14,7 +13,6 @@ import javax.ws.rs.ext.Provider;
  * @author rsoika
  *
  */
-@Provider
 public class JWTAuthenticator  implements ClientRequestFilter {
 
     private final String jwt;

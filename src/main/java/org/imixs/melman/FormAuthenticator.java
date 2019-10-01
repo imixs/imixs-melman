@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.ext.Provider;
 
 /**
  * This RequestFilter performs a form based authentication. The filter can be
@@ -26,7 +25,6 @@ import javax.ws.rs.ext.Provider;
  * @author rsoika
  *
  */
-@Provider
 public class FormAuthenticator implements ClientRequestFilter {
 
 	private ArrayList<Object> cookies;

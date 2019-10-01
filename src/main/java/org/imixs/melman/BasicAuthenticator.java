@@ -6,7 +6,6 @@ import java.io.UnsupportedEncodingException;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
 import javax.xml.bind.DatatypeConverter;
 
 
@@ -17,12 +16,13 @@ import javax.xml.bind.DatatypeConverter;
  * @author rsoika
  *
  */
-@Provider
 public class BasicAuthenticator  implements ClientRequestFilter {
 
     private final String user;
     private final String password;
 
+    
+    
     public BasicAuthenticator(String user, String password) {
         this.user = user;
         this.password = password;
