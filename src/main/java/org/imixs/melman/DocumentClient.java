@@ -457,6 +457,53 @@ public class DocumentClient extends AbstractClient {
 		}
 
 		return null;
+	}
+
+
+	
+	/**
+	 * Posts a XMLDocument collection to a custom resource.
+	 * 
+	 * 
+	 * @param documents - a collection of ItemCollection objects 
+	 * @throws RestAPIException
+	 */
+	public void postXMLDataCollection(String uri, XMLDataCollection xmlDataCollection) throws RestAPIException {
+		Client client = null;
+
+		// strip first / if available
+		if (uri.startsWith("/")) {
+			uri = uri.substring(1);
+		}
+		// verify if uri has protocoll
+		if (!uri.matches("\\w+\\:.*")) {
+			// add base url
+			uri = getBaseURI() + uri;
+		}
+
+		try {
+			client = newClient();
+			Response response = client.target(uri).request(MediaType.APPLICATION_XML)
+					.post(Entity.entity(xmlDataCollection, MediaType.APPLICATION_XML));
+			// no object returned - so we throw a RestAPIException
+			if (response.getStatus()>=300) {
+				throw new RestAPIException(DocumentClient.class.getSimpleName(),""+response.getStatus(), ""+response.getStatusInfo());
+			}
+
+		} catch (ProcessingException e) {
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
+			} else {
+				message = e.getMessage();
+			}
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error post XMLDataCollection ->" + message, e);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 		
 	}
 
