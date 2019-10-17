@@ -28,7 +28,6 @@
 package org.imixs.melman;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -70,16 +69,9 @@ public class BPMNWriter implements MessageBodyWriter<BPMNModel> {
 				entityStream));
 		
 		String s=new String(model.getRawData());
-		
 		bw.write(s);
-		
 		bw.flush();
 		
-		
-//		entityStream.write(model.getRawData());
-//		
-//		entityStream.close();
-//	
 	}
 
 	public long getSize(BPMNModel model, Class<?> arg1, Type arg2,
@@ -87,11 +79,6 @@ public class BPMNWriter implements MessageBodyWriter<BPMNModel> {
 		return model.getRawData().length;
 	}
 
-	
-	
-	
-
-	
 	
 	
 }

@@ -31,7 +31,7 @@ public class JWTAuthenticator  implements ClientRequestFilter {
     	
     	String url = uri.toString();
 		if (!url.contains("jwt=")) {
-			logger.info("adding JSON Web Token...");
+			logger.finest(".....adding JSON Web Token...");
 			requestContext.getHeaders().add("jwt", jwt);
 		}
     }   
