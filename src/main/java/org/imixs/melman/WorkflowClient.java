@@ -29,6 +29,7 @@ package org.imixs.melman;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.core.MediaType;
@@ -65,13 +66,14 @@ public class WorkflowClient extends DocumentClient {
 	 * Process a single workitem instance. If the workitem is not yet managed by the
 	 * workflow manger a new instance will be created.
 	 * 
-	 * @param workitem - a ItemCollection representing the workitem.
+	 * @param workitem
+	 *            - a ItemCollection representing the workitem.
 	 * @return updated workitem instance
 	 * @throws RestAPIException
 	 */
 	public ItemCollection processWorkitem(ItemCollection workitem) throws RestAPIException {
 		logger.finest("......process workitem...");
-		
+
 		XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(workitem);
 		XMLDataCollection data = postXMLDocument(baseURI + "workflow/workitem/", xmlWorkitem);
 
@@ -84,6 +86,9 @@ public class WorkflowClient extends DocumentClient {
 
 	/**
 	 * Returns a single workItem instance by UniqueID.
+	 * <p>
+	 * The method calls the workflow rest interface instead of the document rest
+	 * interface to ensure the corresponding backend method is accessed.
 	 * 
 	 * @param uniqueid
 	 * @param items
@@ -91,7 +96,41 @@ public class WorkflowClient extends DocumentClient {
 	 * @throws RestAPIException
 	 */
 	public ItemCollection getWorkitem(String uniqueid) throws RestAPIException {
-		return getDocument(uniqueid);
+
+		Client client = null;
+		String uri = baseURI + "workflow/workitem/" + uniqueid;
+
+		// test items..
+		if (items != null && !items.isEmpty()) {
+			uri += "?items=" + items;
+		}
+		try {
+			client = newClient();
+			XMLDataCollection data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
+
+			if (data != null) {
+				if (data.getDocument().length == 0) {
+					return null;
+				}
+				XMLDocument xmldoc = data.getDocument()[0];
+				return XMLDocumentAdapter.putDocument(xmldoc);
+			}
+		} catch (ProcessingException e) {
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
+			} else {
+				message = e.getMessage();
+			}
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error request XMLDataCollection ->" + message, e);
+
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
+		return null;
 	}
 
 	/**
