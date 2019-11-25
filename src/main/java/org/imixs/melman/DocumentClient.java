@@ -140,7 +140,8 @@ public class DocumentClient extends AbstractClient {
 	/**
 	 * Creates or updates a single document instance.
 	 * 
-	 * @param document - a ItemCollection representing the document.
+	 * @param document
+	 *            - a ItemCollection representing the document.
 	 * @return updated document instance
 	 * @throws RestAPIException
 	 */
@@ -159,7 +160,8 @@ public class DocumentClient extends AbstractClient {
 	/**
 	 * Creates a new AdminPJobInstance
 	 * 
-	 * @param document - a ItemCollection representing the job.
+	 * @param document
+	 *            - a ItemCollection representing the job.
 	 * @return updated job instance
 	 * @throws RestAPIException
 	 */
@@ -254,7 +256,8 @@ public class DocumentClient extends AbstractClient {
 	 * lucene query is encoded by this method. The method throws a
 	 * UnsupportedEncodingException if the query string can not be encoded.
 	 * 
-	 * @param query - lucene search query
+	 * @param query
+	 *            - lucene search query
 	 * @return result list
 	 * @throws RestAPIException
 	 * @throws UnsupportedEncodingException
@@ -275,7 +278,8 @@ public class DocumentClient extends AbstractClient {
 	 * The method returns the count of documents included in the result of a given
 	 * lucene query
 	 * 
-	 * @param query - lucene search query
+	 * @param query
+	 *            - lucene search query
 	 * @return count of total hits
 	 * @throws RestAPIException
 	 * @throws UnsupportedEncodingException
@@ -393,8 +397,10 @@ public class DocumentClient extends AbstractClient {
 	 * throws an exception containing the the error_code and error_message stored in
 	 * the returnded XMLDocument
 	 * 
-	 * @param document - a ItemCollection representing the document.
-	 * @return updated document instance or null if no document was returned by the API
+	 * @param document
+	 *            - a ItemCollection representing the document.
+	 * @return updated document instance or null if no document was returned by the
+	 *         API
 	 * @throws RestAPIException
 	 */
 	public XMLDataCollection postXMLDocument(String uri, XMLDocument xmlWorkitem) throws RestAPIException {
@@ -415,30 +421,29 @@ public class DocumentClient extends AbstractClient {
 			Response response = client.target(uri).request(MediaType.APPLICATION_XML)
 					.post(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
 
-			
-			
-			// read result...
-			if (response.hasEntity()) {
-				XMLDataCollection data = response.readEntity(XMLDataCollection.class);
-				if (data != null && data.getDocument().length > 0) {
-					ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
-					// HTTP OK?
-					if (response.getStatus() == 200) {
-						// return first element of
-						return data;
-					} else {
-						// handle error code...
-						throw new RestAPIException(DocumentClient.class.getSimpleName(),
-								result.getItemValueString(ITEM_ERROR_CODE),
-								result.getItemValueString(ITEM_ERROR_MESSAGE));
+			if (response.getStatus() < 300) {
+				// read result...
+				if (response.hasEntity() && response.getLength() > 0) {
+					XMLDataCollection data = response.readEntity(XMLDataCollection.class);
+					if (data != null && data.getDocument().length > 0) {
+						ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
+						// HTTP OK?
+						if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+							// return first element of
+							return data;
+						} else {
+							// handle error code...
+							throw new RestAPIException(DocumentClient.class.getSimpleName(),
+									result.getItemValueString(ITEM_ERROR_CODE),
+									result.getItemValueString(ITEM_ERROR_MESSAGE));
+						}
 					}
 				}
-			}
-			
+			} else {
 
-			// no object returned - so we throw a RestAPIException
-			if (response.getStatus()<300) {
-				throw new RestAPIException(DocumentClient.class.getSimpleName(),""+response.getStatus(), ""+response.getStatusInfo());
+				// no object returned or HTTP Code >=300 -> throw a RestAPIException
+				throw new RestAPIException(DocumentClient.class.getSimpleName(), "" + response.getStatus(),
+						response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
 			}
 
 		} catch (ProcessingException e) {
@@ -459,13 +464,12 @@ public class DocumentClient extends AbstractClient {
 		return null;
 	}
 
-
-	
 	/**
 	 * Posts a XMLDocument collection to a custom resource.
 	 * 
 	 * 
-	 * @param documents - a collection of ItemCollection objects 
+	 * @param documents
+	 *            - a collection of ItemCollection objects
 	 * @throws RestAPIException
 	 */
 	public void postXMLDataCollection(String uri, XMLDataCollection xmlDataCollection) throws RestAPIException {
@@ -486,8 +490,9 @@ public class DocumentClient extends AbstractClient {
 			Response response = client.target(uri).request(MediaType.APPLICATION_XML)
 					.post(Entity.entity(xmlDataCollection, MediaType.APPLICATION_XML));
 			// no object returned - so we throw a RestAPIException
-			if (response.getStatus()>=300) {
-				throw new RestAPIException(DocumentClient.class.getSimpleName(),""+response.getStatus(), ""+response.getStatusInfo());
+			if (response.getStatus() >= 300) {
+				throw new RestAPIException(DocumentClient.class.getSimpleName(), "" + response.getStatus(),
+						"" + response.getStatusInfo());
 			}
 
 		} catch (ProcessingException e) {
@@ -504,7 +509,7 @@ public class DocumentClient extends AbstractClient {
 				client.close();
 			}
 		}
-		
+
 	}
 
 }
