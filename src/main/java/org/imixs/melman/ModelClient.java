@@ -32,6 +32,7 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.imixs.workflow.bpmn.BPMNModel;
 
@@ -61,20 +62,25 @@ public class ModelClient extends AbstractClient {
 	/**
 	 * Posts a byte array of a BPMN Model to the Model service.
 	 * 
-	 * @param data - byte array of a bpmn model file
+	 * @param data
+	 *            - byte array of a bpmn model file
 	 *
 	 * @throws RestAPIException
 	 */
 	public void postModel(BPMNModel model) throws RestAPIException {
 
 		Client client = null;
-
 		try {
 			client = newClient();
-
 			client.register(new BPMNWriter());
-			client.target(baseURI + "model/bpmn/").request(MediaType.APPLICATION_XML)
+			Response response = client.target(baseURI + "model/bpmn/").request(MediaType.APPLICATION_XML)
 					.post(Entity.entity(model, MediaType.APPLICATION_XML));
+
+			if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+				throw new RestAPIException(DocumentClient.class.getSimpleName(),
+						RestAPIException.RESPONSE_PROCESSING_EXCEPTION,
+						"error post BPMNModel ->" + response.getStatusInfo().getReasonPhrase());
+			}
 
 		} catch (ProcessingException e) {
 			String message = null;
