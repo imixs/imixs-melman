@@ -415,6 +415,16 @@ public class DocumentClient extends AbstractClient {
 			// add base url
 			uri = getBaseURI() + uri;
 		}
+		
+		// test items..
+		if (items != null && !items.isEmpty()) {
+			if (uri.contains("?")) {
+				uri+="&";
+			} else {
+				uri+="?";
+			}
+			uri += "items=" + items;
+		}
 
 		try {
 			client = newClient();
