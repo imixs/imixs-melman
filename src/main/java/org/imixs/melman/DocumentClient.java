@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -340,6 +341,25 @@ public class DocumentClient extends AbstractClient {
 		}
 
 	}
+	
+	
+	public WebTarget getWebTarget(String uri) throws RestAPIException {
+		Client client = null;
+		// strip first / if available
+		if (uri.startsWith("/")) {
+			uri = uri.substring(1);
+		}
+		// verify if uri has protocoll
+		if (!uri.matches("\\w+\\:.*")) {
+			// add base url
+			uri = getBaseURI() + uri;
+		}
+		client = newClient();
+		return client.target(uri);
+	}
+
+	
+	
 
 	/**
 	 * Returns the custom data list by uri GET as a collection of XMLDocument
