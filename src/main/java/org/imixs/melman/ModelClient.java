@@ -99,5 +99,37 @@ public class ModelClient extends AbstractClient {
 
 		return;
 	}
+	
+	
+	
+	/**
+	 * Deletes a model by its version
+	 * 
+	 * @param userid
+	 * @throws RestAPIException
+	 */
+	public void deleteModel(String version) throws RestAPIException {
+		Client client = null;
+		try {
+			client = newClient();
+			String uri = baseURI + "model/" + version;
+			client.target(uri).request(MediaType.APPLICATION_XML).delete();
+		} catch (ProcessingException e) {
+			String message = null;
+			if (e.getCause() != null) {
+				message = e.getCause().getMessage();
+			} else {
+				message = e.getMessage();
+			}
+			throw new RestAPIException(DocumentClient.class.getSimpleName(),
+					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete model ->" + message, e);
+
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
+	}
+
 
 }
