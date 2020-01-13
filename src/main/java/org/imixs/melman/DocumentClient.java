@@ -453,7 +453,9 @@ public class DocumentClient extends AbstractClient {
 
 			if (response.getStatus() < 300) {
 				// read result...
-				if (response.hasEntity() && response.getLength() > 0) {
+				//if (response.hasEntity() && response.getLength() > 0) {
+			    // see Issue #37
+                if (response.hasEntity()) {
 					XMLDataCollection data = response.readEntity(XMLDataCollection.class);
 					if (data != null && data.getDocument().length > 0) {
 						ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
