@@ -20,30 +20,30 @@ Using Maven add the following dependencies to your project:
 	<dependency>
 		<groupId>org.imixs.workflow</groupId>
 		<artifactId>imixs-melman</artifactId>
-		<version>1.0.9</version>
+		<version>1.0.17</version>
 		<scope>test</scope>
 	</dependency>
 
 Imixs-Melman is based on Jax-RS 2.0. So you may need to add the missing Java dependencies. 
-For jUnit test you can add the following dependencys to test Jax-RS 2.0
+For jUnit test you can add the following dependencies to test Jax-RS 2.0
 
 	<!-- JAX-RS 2.0 Test dependencies -->
 	<dependency>
 		<groupId>org.glassfish.jersey.core</groupId>
 		<artifactId>jersey-client</artifactId>
-		<version>2.27</version>
+		<version>2.30.1</version>
 		<scope>test</scope>
 	</dependency>
-		
 	<dependency>
 		<groupId>org.apache.cxf</groupId>
 		<artifactId>cxf-rt-rs-client</artifactId>
-		<version>3.0.15</version>
+		<version>3.3.6</version>
 		<scope>test</scope>
 	</dependency>
 
+
 	
-	
+
 # Examples
 	
 These are examples how to use Imixs-Melman. For details see also the [Imixs-Workflow Rest-API](https://www.imixs.org/doc/restapi/index.html). 
