@@ -112,6 +112,68 @@ public class EventLogClient extends AbstractClient {
 			}
 		}
 	}
+	
+	
+	
+	
+	/**
+     * Lock an EventLog entry by its ID.
+     * 
+     * @param userid
+     * @throws RestAPIException
+     */
+    public void lockEventLogEntry(String eventLogID) throws RestAPIException {
+        Client client = null;
+        try {
+            client = newClient();
+            String uri = baseURI + "eventlog/lock/" + eventLogID;
+            client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+        } catch (ProcessingException e) {
+            String message = null;
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new RestAPIException(DocumentClient.class.getSimpleName(),
+                    RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error lock eventLog ->" + message, e);
+    
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+    
+    
+    /**
+     * Lock an EventLog entry by its ID.
+     * 
+     * @param userid
+     * @throws RestAPIException
+     */
+    public void unlockEventLogEntry(String eventLogID) throws RestAPIException {
+        Client client = null;
+        try {
+            client = newClient();
+            String uri = baseURI + "eventlog/unlock/" + eventLogID;
+            client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+        } catch (ProcessingException e) {
+            String message = null;
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new RestAPIException(DocumentClient.class.getSimpleName(),
+                    RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error lock eventLog ->" + message, e);
+    
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
 
 
 	/**
