@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.ClientRequestContext;
@@ -32,10 +33,13 @@ public class FormAuthenticator implements ClientRequestFilter {
 	private final static Logger logger = Logger.getLogger(FormAuthenticator.class.getName());
 
 	public FormAuthenticator(String baseUri, String username, String password) {
+		boolean debug = logger.isLoggable(Level.FINE);
 		cookies = new ArrayList<>();
 		// extend the base uri with /j_security_check....
 		baseUri += "/j_security_check";
-		logger.finest("......baseUIR= " + baseUri);
+		if (debug) {
+			logger.finest("......baseUIR= " + baseUri);
+		}
 		// Access secure page on server. In response to this request we will receive
 		// the JSESSIONID to be used for further requests.
 		try {
@@ -62,31 +66,40 @@ public class FormAuthenticator implements ClientRequestFilter {
 			wr.flush();
 			wr.close();
 			int responseCode = con.getResponseCode();
-			logger.fine(".....Response Code : " + responseCode);
-			con.connect();
-			// get cookies from underlying CookieStore
-			CookieStore cookieJar = manager.getCookieStore();
-			List<HttpCookie> cookiesListe = cookieJar.getCookies();
-			for (HttpCookie cookie : cookiesListe) {
-				// create a jax-rs cookie...
-				javax.ws.rs.core.Cookie n = new javax.ws.rs.core.Cookie(cookie.getName(), cookie.getValue(),
-						cookie.getPath(), cookie.getDomain());
-				cookies.add(n);
-				logger.finest("......CookieHandler retrieved cookie: " + cookie);
+			if (debug) {
+				logger.fine(".....Response Code : " + responseCode);
 			}
+			if (responseCode >= 200 && responseCode < 300) {
+				con.connect();
+				// get cookies from underlying CookieStore
+				CookieStore cookieJar = manager.getCookieStore();
+				List<HttpCookie> cookiesListe = cookieJar.getCookies();
+				for (HttpCookie cookie : cookiesListe) {
+					// create a jax-rs cookie...
+					javax.ws.rs.core.Cookie n = new javax.ws.rs.core.Cookie(cookie.getName(), cookie.getValue(),
+							cookie.getPath(), cookie.getDomain());
+					cookies.add(n);
+					if (debug) {
+						logger.finest("......CookieHandler retrieved cookie: " + cookie);
+					}
+				}
 
-			// get stream and read from it, just to close the response which is important
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			String inputLine;
-			StringBuffer response = new StringBuffer();
-			while ((inputLine = in.readLine()) != null) {
-				response.append(inputLine);
+				// get stream and read from it, just to close the response which is important
+				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+				String inputLine;
+				StringBuffer response = new StringBuffer();
+				while ((inputLine = in.readLine()) != null) {
+					response.append(inputLine);
+				}
+				in.close();
 			}
-			in.close();
 
 		} catch (IOException e) {
 			// something went wrong...
-			e.printStackTrace();
+			logger.warning("unable to connect: " + e.getMessage());
+			if (debug) {
+				e.printStackTrace();
+			}
 		}
 
 	}

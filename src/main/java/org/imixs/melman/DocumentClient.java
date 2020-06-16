@@ -34,14 +34,12 @@ import java.util.logging.Logger;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.imixs.workflow.ItemCollection;
 import org.imixs.workflow.xml.XMLCount;
 import org.imixs.workflow.xml.XMLDataCollection;
-import org.imixs.workflow.xml.XMLDataCollectionAdapter;
 import org.imixs.workflow.xml.XMLDocument;
 import org.imixs.workflow.xml.XMLDocumentAdapter;
 
@@ -323,92 +321,7 @@ public class DocumentClient extends AbstractClient {
 
 	}
 
-	/**
-	 * Returns the custom data list by uri GET
-	 * 
-	 * @param userid
-	 * @param items
-	 * @return result list
-	 * @throws RestAPIException
-	 */
-	public List<ItemCollection> getCustomResource(String uri) throws RestAPIException {
-		XMLDataCollection data = null;
-		data = getCustomResourceXML(uri);
-		if (data == null) {
-			return null;
-		} else {
-			return XMLDataCollectionAdapter.putDataCollection(data);
-		}
-
-	}
 	
-	
-	public WebTarget getWebTarget(String uri) throws RestAPIException {
-		Client client = null;
-		// strip first / if available
-		if (uri.startsWith("/")) {
-			uri = uri.substring(1);
-		}
-		// verify if uri has protocoll
-		if (!uri.matches("\\w+\\:.*")) {
-			// add base url
-			uri = getBaseURI() + uri;
-		}
-		client = newClient();
-		return client.target(uri);
-	}
-
-	
-	
-
-	/**
-	 * Returns the custom data list by uri GET as a collection of XMLDocument
-	 * elements.
-	 * 
-	 * @param userid
-	 * @param items
-	 * @return result list of XMLDocument elements
-	 * @throws RestAPIException
-	 */
-	public XMLDataCollection getCustomResourceXML(String uri) throws RestAPIException {
-		Client client = null;
-		XMLDataCollection data = null;
-
-		// strip first / if available
-		if (uri.startsWith("/")) {
-			uri = uri.substring(1);
-		}
-		// verify if uri has protocoll
-		if (!uri.matches("\\w+\\:.*")) {
-			// add base url
-			uri = getBaseURI() + uri;
-		}
-
-		try {
-			client = newClient();
-			data = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLDataCollection.class);
-			if (data != null) {
-				return data;
-			}
-		} catch (ProcessingException e) {
-			String message = null;
-			if (e.getCause() != null) {
-				message = e.getCause().getMessage();
-			} else {
-				message = e.getMessage();
-			}
-			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION,
-					"error requesting custom XMLDataCollection ->" + message, e);
-		} finally {
-			if (client != null) {
-				client.close();
-			}
-		}
-		// no data!
-		return null;
-	}
-
 	/**
 	 * Posts a XMLDocument to a custom resource.
 	 * <p>
@@ -543,5 +456,8 @@ public class DocumentClient extends AbstractClient {
 		}
 
 	}
+
+
+	
 
 }
