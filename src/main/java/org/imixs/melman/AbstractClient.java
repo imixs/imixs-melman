@@ -116,6 +116,30 @@ public abstract class AbstractClient {
 		return client;
 	}
 
+	
+	/**
+	 * Calls the /logout/ target of the rest api endpoint
+	 * @param client
+	 * @throws RestAPIException
+	 */
+	public void logout() {
+	    Client client=newClient();
+	    if (client!=null) {
+            try {
+                logger.finest("......perform logout at: "+getBaseURI() + "logout");
+                client.target( getBaseURI() + "logout").request().get();
+            } catch (NotFoundException  e) {
+               logger.warning("logout not possible - /logout is not defined by server endpoint!");
+            } finally {
+                client.close();
+            }
+        }
+	    // invalidate the requestFilterList
+	    requestFilterList = new ArrayList<ClientRequestFilter>();
+	}
+	
+	
+	
 	/**
 	 * Returns the custom data list by uri GET
 	 * 
