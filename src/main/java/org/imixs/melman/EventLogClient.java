@@ -33,6 +33,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.imixs.workflow.ItemCollection;
 
@@ -126,7 +127,12 @@ public class EventLogClient extends AbstractClient {
         try {
             client = newClient();
             String uri = baseURI + "eventlog/lock/" + eventLogID;
-            client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+            Response response = client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+            if (response == null || response.getStatus() >= 300) {
+                // HTTP Code >=300 -> throw a RestAPIException
+                throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
+                           response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
+               }
         } catch (NotFoundException | ProcessingException e) {
             String message = null;
             if (e.getCause() != null) {
@@ -156,7 +162,12 @@ public class EventLogClient extends AbstractClient {
         try {
             client = newClient();
             String uri = baseURI + "eventlog/unlock/" + eventLogID;
-            client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+            Response response = client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+            if (response == null || response.getStatus() >= 300) {
+                // HTTP Code >=300 -> throw a RestAPIException
+                throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
+                           response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
+            }
         } catch (NotFoundException | ProcessingException e) {
             String message = null;
             if (e.getCause() != null) {
@@ -191,7 +202,13 @@ public class EventLogClient extends AbstractClient {
         try {
             client = newClient();
             String uri = baseURI + "eventlog/release/" + deadLockInterval + "/" + _topicList;
-            client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+            Response response = client.target(uri).request(MediaType.APPLICATION_XML).post(null);
+            if (response == null || response.getStatus() >= 300) {
+             // HTTP Code >=300 -> throw a RestAPIException
+             throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
+                        response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
+            }
+           
         } catch (NotFoundException | ProcessingException e) {
             String message = null;
             if (e.getCause() != null) {
