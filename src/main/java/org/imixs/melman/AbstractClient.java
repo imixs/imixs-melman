@@ -1,5 +1,9 @@
 package org.imixs.melman;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+
 /*******************************************************************************
  *  Imixs Workflow 
  *  Copyright (C) 2001, 2011 Imixs Software Solutions GmbH,  
@@ -31,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -44,7 +51,7 @@ import org.imixs.workflow.xml.XMLDataCollection;
 import org.imixs.workflow.xml.XMLDataCollectionAdapter;
 
 /**
- * This AbstractClient provides core functionallity of a JAX Rest Client and the
+ * This AbstractClient provides core functionality of a JAX Rest Client and the
  * feature to register authentication filters.
  * 
  * 
@@ -56,6 +63,8 @@ public abstract class AbstractClient {
 	private final static Logger logger = Logger.getLogger(AbstractClient.class.getName());
 
 	protected String baseURI = null;
+
+	protected SSLContext sslContext = null;
 
 	protected List<ClientRequestFilter> requestFilterList;
 
@@ -75,6 +84,54 @@ public abstract class AbstractClient {
 		this.baseURI = base_uri;
 
 		logger.finest("......register jax-rs client for " + base_uri + "...");
+
+		// test if a noop ssl context is needed
+		String useInsecure = System.getenv("IMIXS_REST_CLIENT_INSECURE");
+		if (useInsecure != null && useInsecure.equalsIgnoreCase("true")) {
+			try {
+				initNoopTrustManager();
+			} catch (KeyManagementException | NoSuchAlgorithmException e) {
+				logger.severe("Failed to setup noopTrustManager: " + e.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * This helper method initializes a noop trust manager. This can be used in
+	 * causes by the lack of a certificates in Java's keystore
+	 * 
+	 * @throws KeyManagementException
+	 * @throws NoSuchAlgorithmException
+	 */
+	private void initNoopTrustManager() throws KeyManagementException, NoSuchAlgorithmException {
+		logger.info("...init insecure NoopTrustManager!");
+		TrustManager[] noopTrustManager = new TrustManager[] { new X509TrustManager() {
+
+			@Override
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+
+			@Override
+			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+
+			@Override
+			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+		} };
+		// get instnace of new ssl context
+		sslContext = SSLContext.getInstance("ssl");
+		sslContext.init(null, noopTrustManager, null);
+
+	}
+
+	public SSLContext getSslContext() {
+		return sslContext;
+	}
+
+	public void setSslContext(SSLContext sslContext) {
+		this.sslContext = sslContext;
 	}
 
 	/**
@@ -105,41 +162,52 @@ public abstract class AbstractClient {
 	 * The method registers all known filter instances.
 	 * <p>
 	 * The client instance should be closed after the request if finished.
+	 * <p>
+	 * The method verifies if a sslContext exists. In this case a client this
+	 * context will be generated
 	 * 
 	 * @return javax.ws.rs.client.Client instance
 	 */
 	public Client newClient() {
-		Client client = ClientBuilder.newClient();
+		Client client = null;
+		if (sslContext != null) {
+			logger.finest("...using custom sslContext to connect...");
+			// we use the given sslContext
+			client = ClientBuilder.newBuilder().sslContext(sslContext).build();
+		} else {
+			// create the default client
+			client = ClientBuilder.newClient();
+		}
+
 		for (ClientRequestFilter filter : requestFilterList) {
 			client.register(filter);
 		}
+
 		return client;
 	}
 
-	
 	/**
 	 * Calls the /logout/ target of the rest api endpoint
+	 * 
 	 * @param client
 	 * @throws RestAPIException
 	 */
 	public void logout() {
-	    Client client=newClient();
-	    if (client!=null) {
-            try {
-                logger.finest("......perform logout at: "+getBaseURI() + "logout");
-                client.target( getBaseURI() + "logout").request().get();
-            } catch (NotFoundException  e) {
-               logger.warning("logout not possible - /logout is not defined by server endpoint!");
-            } finally {
-                client.close();
-            }
-        }
-	    // invalidate the requestFilterList
-	    requestFilterList = new ArrayList<ClientRequestFilter>();
+		Client client = newClient();
+		if (client != null) {
+			try {
+				logger.finest("......perform logout at: " + getBaseURI() + "logout");
+				client.target(getBaseURI() + "logout").request().get();
+			} catch (NotFoundException e) {
+				logger.warning("logout not possible - /logout is not defined by server endpoint!");
+			} finally {
+				client.close();
+			}
+		}
+		// invalidate the requestFilterList
+		requestFilterList = new ArrayList<ClientRequestFilter>();
 	}
-	
-	
-	
+
 	/**
 	 * Returns the custom data list by uri GET
 	 * 

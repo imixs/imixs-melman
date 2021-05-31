@@ -146,4 +146,14 @@ The Melman Rest Client throws a _RestAPIException_ in case an API error occurred
 	}
 	...
  
-	
+
+
+# Insecure SSL Connections
+
+The initialization of a secure JAX-RS / HTTPs connection can fail caused by the lack of a certificate in Java's keystore. A certificate import into the java keystore fixes the problem in most cases. But for development or for system tests, however, a certificate verification is not required and can be omitted. To accept insecure SSL connections the environment variable *IMIXS_REST_CLIENT_INSECURE* can be set to 'true':
+
+	IMIXS_REST_CLIENT_INSECURE=true
+
+In this mode, the Imixs-Rest Client will install a custom SSL TrustManager that accepts insecure SSL connections. 
+
+**Note:** This feature should only be used in dev and test environments!
