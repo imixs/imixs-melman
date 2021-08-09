@@ -266,6 +266,26 @@ public class DocumentClient extends AbstractClient {
 		// encode search query...
 		query = URLEncoder.encode(query, "UTF-8");
 		uri = uri + query;
+		
+		  // test pagesize, pageindex
+		if (pageSize ==0) {
+		    pageSize=-1;
+		}
+		uri += "?pageSize=" + pageSize + "&pageIndex=" + pageIndex;
+        
+        // test sort order
+        if (getSortBy() != null) {
+            uri += "&sortBy=" + getSortBy();
+        }
+        if (isSortReverse()) {
+            uri += "&sortReverse=" + isSortReverse();
+        }
+
+        // test items..
+        if (items != null && !items.isEmpty()) {
+            uri += "&items=" + items;
+        }
+		
 		// search.....
 		List<ItemCollection> searchResult = getCustomResource(uri);
 		return searchResult;
