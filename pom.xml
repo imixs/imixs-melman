@@ -6,7 +6,7 @@
 
 
 	<name>Imixs-Melman</name>
-	<version>1.0.22-SNAPSHOT</version>
+	<version>2.0.0-SNAPSHOT</version>
 	<description>Imixs Workflow Melman </description>
 	<url>https://github.com/imixs-docker/imixs-melman</url>
 	<organization>
@@ -58,7 +58,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<org.imixs.workflow.version>5.2.2</org.imixs.workflow.version>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>		
+		<org.imixs.workflow.version>6.0.1-SNAPSHOT</org.imixs.workflow.version>
 		<!-- imixs-github-repo on github - see ~/.m2/settings.xml -->
 		<github.global.server>imixs-github-repo</github.global.server>
 	</properties>
@@ -66,16 +68,7 @@
 
 	<build>
 		<plugins>
-			<!-- use JDK 1.8 settings for compiling -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
+			
 			<!-- release management -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -212,11 +205,11 @@
 
 	<dependencies>
 
-		<!-- JEE Dependencies -->
+		<!-- Jakarta EE dependencies -->
 		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-api</artifactId>
-			<version>8.0</version>
+			<groupId>jakarta.platform</groupId>
+			<artifactId>jakarta.jakartaee-api</artifactId>
+			<version>9.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 

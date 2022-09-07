@@ -29,10 +29,10 @@ package org.imixs.melman;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ResponseProcessingException;
+import jakarta.ws.rs.core.MediaType;
 
 import org.imixs.workflow.ItemCollection;
 import org.imixs.workflow.xml.XMLDataCollection;
