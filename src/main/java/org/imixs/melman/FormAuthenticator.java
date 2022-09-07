@@ -106,42 +106,42 @@ public class FormAuthenticator implements ClientRequestFilter {
 			String loginURL = computeLoginURL(baseUri);
 			logger.info("....login page=" + loginURL);
 
-			if (loginURL==null) {
+			if (loginURL == null) {
 				// default to baseUri
-				loginURL=_baseUri;
+				loginURL = _baseUri;
 			}
-			
-			 // create the httpURLConnection...
-            URL obj = new URL(loginURL);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestProperty("Connection", "close");
 
-            // add request header
-            con.setRequestMethod("POST");
-            con.setRequestProperty("User-Agent", USER_AGENT);
-            // add Post parameters
-            String urlParameters = "j_username=" + username + "&j_password=" + password;
-            // Send post request
-            con.setDoOutput(true);
-            con.setDoInput(true);
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.writeBytes(urlParameters);
-            wr.flush();
-            wr.close();
-            int responseCode = con.getResponseCode();
-            logger.finest(".....Response Code : " + responseCode);
-            con.connect();
-            
-            jsessionID=readJSESSIONID(con);
-            logger.info("...jsessionID=" +jsessionID);
-            // get stream and read from it, just to close the response which is important
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
+			// create the httpURLConnection...
+			URL obj = new URL(loginURL);
+			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+			con.setRequestProperty("Connection", "close");
+
+			// add request header
+			con.setRequestMethod("POST");
+			con.setRequestProperty("User-Agent", USER_AGENT);
+			// add Post parameters
+			String urlParameters = "j_username=" + username + "&j_password=" + password;
+			// Send post request
+			con.setDoOutput(true);
+			con.setDoInput(true);
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(urlParameters);
+			wr.flush();
+			wr.close();
+			int responseCode = con.getResponseCode();
+			logger.finest(".....Response Code : " + responseCode);
+			con.connect();
+
+			jsessionID = readJSESSIONID(con);
+			logger.finest("...jsessionID=" + jsessionID);
+			// get stream and read from it, just to close the response which is important
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
 
 		} catch (IOException e) {
 			// something went wrong...
@@ -178,20 +178,12 @@ public class FormAuthenticator implements ClientRequestFilter {
 	 * Note: existing cookies will be overwritten!
 	 */
 	public void filter(ClientRequestContext requestContext) throws IOException {
-
 		if (jsessionID != null && !"".equals(jsessionID)) {
-			
-			logger.info("....set JSESSIONID cookie...");
-
-			 if (jsessionID != null && !"".equals(jsessionID)) {
-		            ArrayList<Object> cookies = new ArrayList<>();
-		            logger.finest("......create new JSESSIONID cookie");
-		            Cookie n = new Cookie("JSESSIONID", jsessionID, path, domain);
-		            cookies.add(n);
-		            requestContext.getHeaders().put("Cookie", cookies);
-		       }
-
-			
+			ArrayList<Object> cookies = new ArrayList<>();
+			logger.finest("......set JSESSIONID cookie");
+			Cookie n = new Cookie("JSESSIONID", jsessionID, path, domain);
+			cookies.add(n);
+			requestContext.getHeaders().put("Cookie", cookies);
 		}
 	}
 
@@ -244,8 +236,8 @@ public class FormAuthenticator implements ClientRequestFilter {
 	 * @return
 	 */
 	private String computeLoginURL(String apiURL) {
-	
-		logger.info("... computeLoginURL...");
+
+		logger.finest("... computeLoginURL...");
 		String modelURL = apiURL;
 		if (!modelURL.endsWith("/")) {
 			modelURL = modelURL + "/";
@@ -258,15 +250,15 @@ public class FormAuthenticator implements ClientRequestFilter {
 			urlConnection.setDoOutput(true);
 			urlConnection.setDoInput(true);
 			urlConnection.setAllowUserInteraction(false);
-	
+
 			int iLastHTTPResult = urlConnection.getResponseCode();
-	
+
 			// read response if response was successful
 			if (iLastHTTPResult >= 200 && iLastHTTPResult <= 299) {
-	
+
 				String loginPage = readResponse(urlConnection);
 				if (loginPage.contains("j_security_check")) {
-					logger.info("found Login page");
+					logger.finest("found Login page");
 					// now we search for somthing like this:
 					// <form method="post" action="/j_security_check">
 					int pos1 = loginPage.indexOf("j_security_check");
@@ -283,22 +275,22 @@ public class FormAuthenticator implements ClientRequestFilter {
 							return result + jSecurityCheck;
 						}
 					}
-	
+
 				} else {
-					logger.info("no login page found!  ");
+					logger.warning("no login page found!  ");
 					return apiURL;
-	
+
 				}
 			} else {
 				String error = "Error " + iLastHTTPResult + " - failed GET request from '" + modelURL + "'";
 				logger.warning(error);
 				throw new RestAPIException(iLastHTTPResult, error);
 			}
-	
+
 		} catch (RestAPIException | IOException e1) {
 			logger.severe("failed to compute login page: " + e1.getMessage());
 		}
-	
+
 		return null;
 	}
 
