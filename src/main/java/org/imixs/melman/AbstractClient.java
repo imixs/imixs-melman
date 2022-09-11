@@ -76,23 +76,27 @@ public abstract class AbstractClient {
 	public AbstractClient(String base_uri) {
 		super();
 
-		requestFilterList = new ArrayList<ClientRequestFilter>();
+		if (base_uri != null) {
+			requestFilterList = new ArrayList<ClientRequestFilter>();
 
-		if (!base_uri.endsWith("/")) {
-			base_uri = base_uri + "/";
-		}
-		this.baseURI = base_uri;
-
-		logger.finest("......register jax-rs client for " + base_uri + "...");
-
-		// test if a noop ssl context is needed
-		String useInsecure = System.getenv("IMIXS_REST_CLIENT_INSECURE");
-		if (useInsecure != null && useInsecure.equalsIgnoreCase("true")) {
-			try {
-				initNoopTrustManager();
-			} catch (KeyManagementException | NoSuchAlgorithmException e) {
-				logger.severe("Failed to setup noopTrustManager: " + e.getMessage());
+			if (!base_uri.endsWith("/")) {
+				base_uri = base_uri + "/";
 			}
+			this.baseURI = base_uri;
+
+			logger.finest("......register jax-rs client for " + base_uri + "...");
+
+			// test if a noop ssl context is needed
+			String useInsecure = System.getenv("IMIXS_REST_CLIENT_INSECURE");
+			if (useInsecure != null && useInsecure.equalsIgnoreCase("true")) {
+				try {
+					initNoopTrustManager();
+				} catch (KeyManagementException | NoSuchAlgorithmException e) {
+					logger.severe("Failed to setup noopTrustManager: " + e.getMessage());
+				}
+			}
+		} else {
+			logger.severe("Endpoint not defined!");
 		}
 	}
 
@@ -144,6 +148,10 @@ public abstract class AbstractClient {
 
 		// client.register(filter);
 		requestFilterList.add(filter);
+	}
+
+	public List<ClientRequestFilter> getRequestFilterList() {
+		return requestFilterList;
 	}
 
 	public String getBaseURI() {

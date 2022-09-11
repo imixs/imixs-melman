@@ -98,6 +98,10 @@ public class DocumentClient extends AbstractClient {
 		return items;
 	}
 
+	/**
+	 * Set a comma separated list of items to be returned. 
+	 * @param items
+	 */
 	public void setItems(String items) {
 		this.items = items;
 	}

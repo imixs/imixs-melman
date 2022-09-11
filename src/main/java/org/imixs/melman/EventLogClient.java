@@ -53,7 +53,7 @@ public class EventLogClient extends AbstractClient {
 
 	public final static int DEFAULT_PAGE_SIZE = 10;
 
-	@SuppressWarnings("unused")
+
 	private final static Logger logger = Logger.getLogger(EventLogClient.class.getName());
 
 	protected int pageSize = DEFAULT_PAGE_SIZE;
