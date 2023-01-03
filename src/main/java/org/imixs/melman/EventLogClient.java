@@ -32,10 +32,13 @@ import java.util.logging.Logger;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import org.imixs.workflow.ItemCollection;
+import org.imixs.workflow.xml.XMLDocument;
+import org.imixs.workflow.xml.XMLDocumentAdapter;
 
 /**
  * This ServiceClient is a WebService REST Client which encapsulate the
@@ -114,7 +117,52 @@ public class EventLogClient extends AbstractClient {
 	}
 	
 	
-	
+
+    /**
+     * Creates a new topic for a given RefId by creating a PUT request
+     * 
+     * @param topic    - new topic
+     * @param refID    - id of the document
+     * @param document - optional document data
+     * @throws RestAPIException
+     */
+    public void createEventLogEntry(String topic, String refID, ItemCollection document) throws RestAPIException {
+        Client client = null;
+        try {
+            client = newClient();
+            String uri = baseURI + "eventlog/" + topic + "/" + refID;
+            Response response=null;
+            if (document != null) {
+                XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
+                response=client.target(uri).request(MediaType.APPLICATION_XML)
+                        .put(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+            } else {
+                // create a empty payload
+                XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(new ItemCollection());
+                response=client.target(uri).request(MediaType.APPLICATION_XML)
+                        .put(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+            }             
+            if (response == null || response.getStatus() >= 300) {
+                // HTTP Code >=300 -> throw a RestAPIException
+                throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
+                        response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
+            }
+        } catch (NotFoundException | ProcessingException e) {
+            String message = null;
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new RestAPIException(DocumentClient.class.getSimpleName(),
+                    RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error creating eventLog ->" + message, e);
+
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
 	
 	/**
      * Lock an EventLog entry by its ID.
