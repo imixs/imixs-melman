@@ -1,4 +1,5 @@
 package org.imixs.melman;
+
 /*******************************************************************************
  *  Imixs Workflow 
  *  Copyright (C) 2001, 2011 Imixs Software Solutions GmbH,  
@@ -32,10 +33,13 @@ import java.util.logging.Logger;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.imixs.workflow.ItemCollection;
+import org.imixs.workflow.xml.XMLDocument;
+import org.imixs.workflow.xml.XMLDocumentAdapter;
 
 /**
  * This ServiceClient is a WebService REST Client which encapsulate the
@@ -48,75 +52,120 @@ import org.imixs.workflow.ItemCollection;
  */
 public class EventLogClient extends AbstractClient {
 
-	public static final String ITEM_ERROR_CODE = "$error_code";
-	public static final String ITEM_ERROR_MESSAGE = "$error_message";
+    public static final String ITEM_ERROR_CODE = "$error_code";
+    public static final String ITEM_ERROR_MESSAGE = "$error_message";
 
-	public final static int DEFAULT_PAGE_SIZE = 10;
+    public final static int DEFAULT_PAGE_SIZE = 10;
 
-	@SuppressWarnings("unused")
-	private final static Logger logger = Logger.getLogger(EventLogClient.class.getName());
+    @SuppressWarnings("unused")
+    private final static Logger logger = Logger.getLogger(EventLogClient.class.getName());
 
-	protected int pageSize = DEFAULT_PAGE_SIZE;
-	protected int pageIndex;
+    protected int pageSize = DEFAULT_PAGE_SIZE;
+    protected int pageIndex;
 
-	/**
-	 * Initialize the client by a BASE_URL.
-	 * 
-	 * @param base_uri
-	 */
-	public EventLogClient(String base_uri) {
-		super(base_uri);
-	}
+    /**
+     * Initialize the client by a BASE_URL.
+     * 
+     * @param base_uri
+     */
+    public EventLogClient(String base_uri) {
+        super(base_uri);
+    }
 
-	public int getPageSize() {
-		return pageSize;
-	}
+    public int getPageSize() {
+        return pageSize;
+    }
 
-	public void setPageSize(int pageSize) {
-		this.pageSize = pageSize;
-	}
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
 
-	public int getPageIndex() {
-		return pageIndex;
-	}
+    public int getPageIndex() {
+        return pageIndex;
+    }
 
-	public void setPageIndex(int pageIndex) {
-		this.pageIndex = pageIndex;
-	}
+    public void setPageIndex(int pageIndex) {
+        this.pageIndex = pageIndex;
+    }
 
-	/**
-	 * Deletes a single workItem or document instance by UniqueID.
-	 * 
-	 * @param userid
-	 * @throws RestAPIException
-	 */
-	public void deleteEventLogEntry(String eventLogID) throws RestAPIException {
-		Client client = null;
-		try {
-			client = newClient();
-			String uri = baseURI + "eventlog/" + eventLogID;
-			client.target(uri).request(MediaType.APPLICATION_XML).delete();
-		} catch (NotFoundException | ProcessingException e) {
-			String message = null;
-			if (e.getCause() != null) {
-				message = e.getCause().getMessage();
-			} else {
-				message = e.getMessage();
-			}
-			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete eventLog ->" + message, e);
-	
-		} finally {
-			if (client != null) {
-				client.close();
-			}
-		}
-	}
-	
-	
-	
-	
-	/**
+    /**
+     * Deletes a single workItem or document instance by UniqueID.
+     * 
+     * @param userid
+     * @throws RestAPIException
+     */
+    public void deleteEventLogEntry(String eventLogID) throws RestAPIException {
+        Client client = null;
+        try {
+            client = newClient();
+            String uri = baseURI + "eventlog/" + eventLogID;
+            client.target(uri).request(MediaType.APPLICATION_XML).delete();
+        } catch (NotFoundException | ProcessingException e) {
+            String message = null;
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new RestAPIException(DocumentClient.class.getSimpleName(),
+                    RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error delete eventLog ->" + message, e);
+
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    /**
+     * Creates a new topic for a given RefId by creating a PUT request
+     * 
+     * @param topic    - new topic
+     * @param refID    - id of the document
+     * @param document - optional document data
+     * @throws RestAPIException
+     */
+    public void createEventLogEntry(String topic, String refID, ItemCollection document) throws RestAPIException {
+        Client client = null;
+        try {
+            client = newClient();
+            String uri = baseURI + "eventlog/" + topic + "/" + refID;
+            Response response=null;
+            if (document != null) {
+                XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(document);
+                response=client.target(uri).request(MediaType.APPLICATION_XML)
+                        .put(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+            } else {
+                // create a empty payload
+                XMLDocument xmlWorkitem = XMLDocumentAdapter.getDocument(new ItemCollection());
+                response=client.target(uri).request(MediaType.APPLICATION_XML)
+                        .put(Entity.entity(xmlWorkitem, MediaType.APPLICATION_XML));
+//                response=client.target(uri).request(MediaType.APPLICATION_XML)
+//                        .put(null);
+            }             
+            if (response == null || response.getStatus() >= 300) {
+                // HTTP Code >=300 -> throw a RestAPIException
+                throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
+                        response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
+            }
+        } catch (NotFoundException | ProcessingException e) {
+            String message = null;
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new RestAPIException(DocumentClient.class.getSimpleName(),
+                    RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error creating eventLog ->" + message, e);
+
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    /**
      * Lock an EventLog entry by its ID.
      * 
      * @param userid
@@ -131,8 +180,8 @@ public class EventLogClient extends AbstractClient {
             if (response == null || response.getStatus() >= 300) {
                 // HTTP Code >=300 -> throw a RestAPIException
                 throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
-                           response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
-               }
+                        response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
+            }
         } catch (NotFoundException | ProcessingException e) {
             String message = null;
             if (e.getCause() != null) {
@@ -142,15 +191,14 @@ public class EventLogClient extends AbstractClient {
             }
             throw new RestAPIException(DocumentClient.class.getSimpleName(),
                     RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error lock eventLog ->" + message, e);
-    
+
         } finally {
             if (client != null) {
                 client.close();
             }
         }
     }
-    
-    
+
     /**
      * Lock an EventLog entry by its ID.
      * 
@@ -166,7 +214,7 @@ public class EventLogClient extends AbstractClient {
             if (response == null || response.getStatus() >= 300) {
                 // HTTP Code >=300 -> throw a RestAPIException
                 throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
-                           response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
+                        response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
             }
         } catch (NotFoundException | ProcessingException e) {
             String message = null;
@@ -177,16 +225,14 @@ public class EventLogClient extends AbstractClient {
             }
             throw new RestAPIException(DocumentClient.class.getSimpleName(),
                     RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error lock eventLog ->" + message, e);
-    
+
         } finally {
             if (client != null) {
                 client.close();
             }
         }
     }
-    
-    
-    
+
     /**
      * Lock an EventLog entry by its ID.
      * 
@@ -195,20 +241,20 @@ public class EventLogClient extends AbstractClient {
      */
     public void releaseDeadLocks(long deadLockInterval, String... topic) throws RestAPIException {
         Client client = null;
-        String _topicList="";
-        for (String aTopic: topic) {
-            _topicList=_topicList+aTopic+"~";
+        String _topicList = "";
+        for (String aTopic : topic) {
+            _topicList = _topicList + aTopic + "~";
         }
         try {
             client = newClient();
             String uri = baseURI + "eventlog/release/" + deadLockInterval + "/" + _topicList;
             Response response = client.target(uri).request(MediaType.APPLICATION_XML).post(null);
             if (response == null || response.getStatus() >= 300) {
-             // HTTP Code >=300 -> throw a RestAPIException
-             throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
+                // HTTP Code >=300 -> throw a RestAPIException
+                throw new RestAPIException(EventLogClient.class.getSimpleName(), "" + response.getStatus(),
                         response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase());
             }
-           
+
         } catch (NotFoundException | ProcessingException e) {
             String message = null;
             if (e.getCause() != null) {
@@ -218,7 +264,7 @@ public class EventLogClient extends AbstractClient {
             }
             throw new RestAPIException(DocumentClient.class.getSimpleName(),
                     RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error releaseDeadLocks ->" + message, e);
-    
+
         } finally {
             if (client != null) {
                 client.close();
@@ -226,33 +272,29 @@ public class EventLogClient extends AbstractClient {
         }
     }
 
+    /**
+     * Loads a collection of EventLog entries for a specific topic
+     * 
+     * @param topic - list of topics
+     * @return eventLog entries
+     * @throws RestAPIException
+     */
+    public List<ItemCollection> searchEventLog(String... topic) throws RestAPIException {
+        List<ItemCollection> eventLogEntries = null;
 
-	/**
-	 * Loads a collection of EventLog entries for a specific topic
-	 * 
-	 * @param topic
-	 *            - list of topics
-	 * @return eventLog entries
-	 * @throws RestAPIException
-	 */
-	public List<ItemCollection> searchEventLog(String... topic) throws RestAPIException {
-		List<ItemCollection> eventLogEntries = null;
+        String topicList = "";
+        for (String _topic : topic) {
+            topicList += _topic + "~";
+        }
+        if (topicList.endsWith("~")) {
+            topicList = topicList.substring(0, topicList.length() - 1);
+        }
 
-		String topicList = "";
-		for (String _topic : topic) {
-			topicList += _topic + "~";
-		}
-		if (topicList.endsWith("~")) {
-			topicList = topicList.substring(0, topicList.length() - 1);
-		}
+        // load eventLog entries.....
+        eventLogEntries = getCustomResource("/eventlog/" + topicList);
+        logger.finest("......" + eventLogEntries.size() + " event log entries found");
 
-		// load eventLog entries.....
-		eventLogEntries = getCustomResource("/eventlog/" + topicList);
-		logger.finest("......" + eventLogEntries.size() + " event log entries found");
-
-		return eventLogEntries;
-	}
-
-	
+        return eventLogEntries;
+    }
 
 }
