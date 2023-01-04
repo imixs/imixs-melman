@@ -32,8 +32,8 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:https://github.com/imixs/imixs-melman.git</connection>
-		<developerConnection>scm:git:https://github.com/imixs/imixs-melman.git</developerConnection>
+		<connection>scm:git:git@github.com:imixs/imixs-melman.git</connection>
+		<developerConnection>scm:git:git@github.com:imixs/imixs-melman.git</developerConnection>
 		<url>https://github.com/imixs/imixs-melman/</url>
 		<tag>imixs-melman-2.0.0</tag>
 	</scm>
