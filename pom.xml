@@ -6,7 +6,7 @@
 
 
 	<name>Imixs-Melman</name>
-	<version>1.0.22</version>
+	<version>1.0.22-SNAPSHOT</version>
 	<description>Imixs Workflow Melman </description>
 	<url>https://github.com/imixs-docker/imixs-melman</url>
 	<organization>
