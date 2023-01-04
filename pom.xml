@@ -32,8 +32,8 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:https://github.com/imixs/imixs-melman.git</connection>
-		<developerConnection>scm:git:https://github.com/imixs/imixs-melman.git</developerConnection>
+		<connection>scm:git:git@github.com:imixs/imixs-melman.git</connection>
+		<developerConnection>scm:git:git@github.com:imixs/imixs-melman.git</developerConnection>
 		<url>https://github.com/imixs/imixs-melman/</url>
 		<tag>imixs-melman-1.0.22</tag>
 	</scm>
@@ -59,8 +59,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.imixs.workflow.version>5.2.17</org.imixs.workflow.version>
-		<!-- imixs-github-repo on github - see ~/.m2/settings.xml -->
-		<github.global.server>imixs-github-repo</github.global.server>
 	</properties>
 
 
@@ -76,6 +74,7 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+
 			<!-- release management -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -98,6 +97,7 @@
 					<serverId>ossrh</serverId>
 					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+					<stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
 				</configuration>
 			</plugin>
 
