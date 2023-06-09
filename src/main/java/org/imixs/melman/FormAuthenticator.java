@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.imixs.workflow.services.rest.RestAPIException;
+
 
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
@@ -48,6 +48,7 @@ public class FormAuthenticator implements ClientRequestFilter {
     private String domain = null;
     private String path = null;
     private String jsessionID = null;
+    private String URL_EXCEPTION="URL_EXCEPTION";
 
     private final String USER_AGENT = "Mozilla/5.0";
     private final static Logger logger = Logger.getLogger(FormAuthenticator.class.getName());
@@ -57,15 +58,13 @@ public class FormAuthenticator implements ClientRequestFilter {
      * 
      * @param _baseUri
      * @param _jsessionid
+     * @throws RestAPIException
      * @throws MalformedURLException
      */
-    public FormAuthenticator(String _baseUri, String _jsessionid) {
+    public FormAuthenticator(String _baseUri, String _jsessionid) throws RestAPIException {
         super();
-
-        boolean debug = logger.isLoggable(Level.FINE);
         this.jsessionID = _jsessionid;
         baseUri = _baseUri;
-
         // extract domain and path form URL
         try {
             URL baseUrl;
@@ -75,10 +74,8 @@ public class FormAuthenticator implements ClientRequestFilter {
             path = baseUrl.getPath();
         } catch (MalformedURLException e) {
             // something went wrong...
-            logger.warning("unable to connect: " + e.getMessage());
-            if (debug) {
-                e.printStackTrace();
-            }
+            throw new RestAPIException(this.getClass().getSimpleName(),URL_EXCEPTION,e.getMessage(),e);
+           
         }
     }
 
@@ -90,8 +87,9 @@ public class FormAuthenticator implements ClientRequestFilter {
      * @param _baseUri
      * @param username
      * @param password
+     * @throws RestAPIException
      */
-    public FormAuthenticator(String _baseUri, String username, String password) {
+    public FormAuthenticator(String _baseUri, String username, String password) throws RestAPIException {
         boolean debug = logger.isLoggable(Level.FINE);
         CookieHandler.setDefault(null);
         baseUri = _baseUri;
@@ -154,7 +152,7 @@ public class FormAuthenticator implements ClientRequestFilter {
 
             logger.finest("...jsessionID=" + jsessionID);
             if (jsessionID == null) {
-                logger.warning("No JSESSIONID returnd from login page!");
+                logger.warning("No JSESSIONID returned from login page!");
             }
 
             // get stream and read from it, just to close the response which is important
@@ -168,10 +166,7 @@ public class FormAuthenticator implements ClientRequestFilter {
 
         } catch (IOException e) {
             // something went wrong...
-            logger.warning("unable to connect: " + e.getMessage());
-            if (debug) {
-                e.printStackTrace();
-            }
+            throw new RestAPIException(this.getClass().getSimpleName(),URL_EXCEPTION,"unable to connect: "+e.toString(), e);
         } finally {
             // finally reset cookei handler
             CookieHandler.setDefault(null);
@@ -219,8 +214,9 @@ public class FormAuthenticator implements ClientRequestFilter {
      * 
      * @param apiURL
      * @return
+     * @throws RestAPIException
      */
-    private String computeLoginURL(String apiURL) {
+    private String computeLoginURL(String apiURL) throws RestAPIException {
 
         logger.finest("... computeLoginURL...");
         String modelURL = apiURL;
@@ -278,12 +274,12 @@ public class FormAuthenticator implements ClientRequestFilter {
                 }
             } else {
                 String error = "Error " + iLastHTTPResult + " - failed GET request from '" + modelURL + "'";
-                logger.warning(error);
-                throw new RestAPIException(iLastHTTPResult, error);
+                throw new RestAPIException(this.getClass().getSimpleName(),  URL_EXCEPTION, error);
             }
 
-        } catch (RestAPIException | IOException e1) {
-            logger.severe("failed to compute login page: " + e1.getMessage());
+        } catch ( IOException e1) {
+            String message="failed to compute login page: "+apiURL + "  -  "+e1.toString();
+            throw new RestAPIException(this.getClass().getSimpleName(),  URL_EXCEPTION, message,e1);
         }
 
         return null;
