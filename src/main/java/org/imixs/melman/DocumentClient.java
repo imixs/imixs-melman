@@ -1,4 +1,5 @@
 package org.imixs.melman;
+
 /*******************************************************************************
  *  Imixs Workflow 
  *  Copyright (C) 2001, 2011 Imixs Software Solutions GmbH,  
@@ -31,17 +32,17 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.logging.Logger;
 
-import jakarta.ws.rs.ProcessingException;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-
 import org.imixs.workflow.ItemCollection;
 import org.imixs.workflow.xml.XMLCount;
 import org.imixs.workflow.xml.XMLDataCollection;
 import org.imixs.workflow.xml.XMLDocument;
 import org.imixs.workflow.xml.XMLDocumentAdapter;
+
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 /**
  * This ServiceClient is a WebService REST Client which encapsulate the
@@ -99,7 +100,8 @@ public class DocumentClient extends AbstractClient {
 	}
 
 	/**
-	 * Set a comma separated list of items to be returned. 
+	 * Set a comma separated list of items to be returned.
+	 * 
 	 * @param items
 	 */
 	public void setItems(String items) {
@@ -144,7 +146,7 @@ public class DocumentClient extends AbstractClient {
 	 * Creates or updates a single document instance.
 	 * 
 	 * @param document
-	 *            - a ItemCollection representing the document.
+	 *                 - a ItemCollection representing the document.
 	 * @return updated document instance
 	 * @throws RestAPIException
 	 */
@@ -164,7 +166,7 @@ public class DocumentClient extends AbstractClient {
 	 * Creates a new AdminPJobInstance
 	 * 
 	 * @param document
-	 *            - a ItemCollection representing the job.
+	 *                 - a ItemCollection representing the job.
 	 * @return updated job instance
 	 * @throws RestAPIException
 	 */
@@ -256,11 +258,11 @@ public class DocumentClient extends AbstractClient {
 	 * Returns the the search result of a lucene search.
 	 * <p>
 	 * The method creates a search URL and requests a CustomResource by GET. The
-	 * lucene query is encoded by this method. The method throws a
+	 * lucene search phrase is encoded by this method. The method throws a
 	 * UnsupportedEncodingException if the query string can not be encoded.
 	 * 
 	 * @param query
-	 *            - lucene search query
+	 *              - lucene search query
 	 * @return result list
 	 * @throws RestAPIException
 	 * @throws UnsupportedEncodingException
@@ -270,26 +272,73 @@ public class DocumentClient extends AbstractClient {
 		// encode search query...
 		query = URLEncoder.encode(query, "UTF-8");
 		uri = uri + query;
-		
-		  // test pagesize, pageindex
-		if (pageSize ==0) {
-		    pageSize=-1;
+
+		// test pagesize, pageindex
+		if (pageSize == 0) {
+			pageSize = -1;
 		}
 		uri += "?pageSize=" + pageSize + "&pageIndex=" + pageIndex;
-        
-        // test sort order
-        if (getSortBy() != null) {
-            uri += "&sortBy=" + getSortBy();
-        }
-        if (isSortReverse()) {
-            uri += "&sortReverse=" + isSortReverse();
-        }
 
-        // test items..
-        if (items != null && !items.isEmpty()) {
-            uri += "&items=" + items;
-        }
-		
+		// test sort order
+		if (getSortBy() != null) {
+			uri += "&sortBy=" + getSortBy();
+		}
+		if (isSortReverse()) {
+			uri += "&sortReverse=" + isSortReverse();
+		}
+
+		// test items..
+		if (items != null && !items.isEmpty()) {
+			uri += "&items=" + items;
+		}
+
+		// search.....
+		List<ItemCollection> searchResult = getCustomResource(uri);
+		return searchResult;
+	}
+
+	/**
+	 * Returns the the search result of a JPQL statement.
+	 * <p>
+	 * The method creates a search URL and requests a CustomResource by GET. The
+	 * JPQL statement is encoded by this method. The method throws a
+	 * UnsupportedEncodingException if the query string can not be encoded.
+	 * 
+	 * @param jpqlStatement
+	 *                      - lucene search query / JQPL statement
+	 * @return result list
+	 * @throws RestAPIException
+	 * @throws UnsupportedEncodingException
+	 */
+	public List<ItemCollection> queryDocuments(String jpqlStatement)
+			throws RestAPIException, UnsupportedEncodingException {
+
+		// determine if the
+
+		String uri = "documents/jpql/";
+		// encode search query...
+		jpqlStatement = URLEncoder.encode(jpqlStatement, "UTF-8");
+		uri = uri + jpqlStatement;
+
+		// test pagesize, pageindex
+		if (pageSize == 0) {
+			pageSize = -1;
+		}
+		uri += "?pageSize=" + pageSize + "&pageIndex=" + pageIndex;
+
+		// test sort order
+		if (getSortBy() != null) {
+			uri += "&sortBy=" + getSortBy();
+		}
+		if (isSortReverse()) {
+			uri += "&sortReverse=" + isSortReverse();
+		}
+
+		// test items..
+		if (items != null && !items.isEmpty()) {
+			uri += "&items=" + items;
+		}
+
 		// search.....
 		List<ItemCollection> searchResult = getCustomResource(uri);
 		return searchResult;
@@ -302,7 +351,7 @@ public class DocumentClient extends AbstractClient {
 	 * lucene query
 	 * 
 	 * @param query
-	 *            - lucene search query
+	 *              - lucene search query
 	 * @return count of total hits
 	 * @throws RestAPIException
 	 * @throws UnsupportedEncodingException
@@ -345,7 +394,6 @@ public class DocumentClient extends AbstractClient {
 
 	}
 
-	
 	/**
 	 * Posts a XMLDocument to a custom resource.
 	 * <p>
@@ -355,7 +403,7 @@ public class DocumentClient extends AbstractClient {
 	 * the returnded XMLDocument
 	 * 
 	 * @param document
-	 *            - a ItemCollection representing the document.
+	 *                 - a ItemCollection representing the document.
 	 * @return updated document instance or null if no document was returned by the
 	 *         API
 	 * @throws RestAPIException
@@ -372,13 +420,13 @@ public class DocumentClient extends AbstractClient {
 			// add base url
 			uri = getBaseURI() + uri;
 		}
-		
+
 		// test items..
 		if (items != null && !items.isEmpty()) {
 			if (uri.contains("?")) {
-				uri+="&";
+				uri += "&";
 			} else {
-				uri+="?";
+				uri += "?";
 			}
 			uri += "items=" + items;
 		}
@@ -390,9 +438,9 @@ public class DocumentClient extends AbstractClient {
 
 			if (response.getStatus() < 300) {
 				// read result...
-				//if (response.hasEntity() && response.getLength() > 0) {
-			    // see Issue #37
-                if (response.hasEntity()) {
+				// if (response.hasEntity() && response.getLength() > 0) {
+				// see Issue #37
+				if (response.hasEntity()) {
 					XMLDataCollection data = response.readEntity(XMLDataCollection.class);
 					if (data != null && data.getDocument().length > 0) {
 						ItemCollection result = XMLDocumentAdapter.putDocument(data.getDocument()[0]);
@@ -438,7 +486,7 @@ public class DocumentClient extends AbstractClient {
 	 * 
 	 * 
 	 * @param documents
-	 *            - a collection of ItemCollection objects
+	 *                  - a collection of ItemCollection objects
 	 * @throws RestAPIException
 	 */
 	public void postXMLDataCollection(String uri, XMLDataCollection xmlDataCollection) throws RestAPIException {
@@ -480,8 +528,5 @@ public class DocumentClient extends AbstractClient {
 		}
 
 	}
-
-
-	
 
 }
