@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
-
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.Cookie;
@@ -48,7 +46,7 @@ public class FormAuthenticator implements ClientRequestFilter {
     private String domain = null;
     private String path = null;
     private String jsessionID = null;
-    private String URL_EXCEPTION="URL_EXCEPTION";
+    private String URL_EXCEPTION = "URL_EXCEPTION";
 
     private final String USER_AGENT = "Mozilla/5.0";
     private final static Logger logger = Logger.getLogger(FormAuthenticator.class.getName());
@@ -74,8 +72,8 @@ public class FormAuthenticator implements ClientRequestFilter {
             path = baseUrl.getPath();
         } catch (MalformedURLException e) {
             // something went wrong...
-            throw new RestAPIException(this.getClass().getSimpleName(),URL_EXCEPTION,e.getMessage(),e);
-           
+            throw new RestAPIException(this.getClass().getSimpleName(), URL_EXCEPTION, e.getMessage(), e);
+
         }
     }
 
@@ -94,7 +92,7 @@ public class FormAuthenticator implements ClientRequestFilter {
         CookieHandler.setDefault(null);
         baseUri = _baseUri;
         if (debug) {
-            logger.finest("......baseUIR= " + baseUri);
+            logger.info("......baseUIR= " + baseUri);
         }
 
         // Access secure page on server. In response to this request we will receive
@@ -110,7 +108,7 @@ public class FormAuthenticator implements ClientRequestFilter {
             domain = baseUrl.getHost();
             path = baseUrl.getPath();
             String loginURL = computeLoginURL(baseUri);
-            logger.fine("....login page=" + loginURL);
+            logger.fine("...login page=" + loginURL);
             if (loginURL == null) {
                 // default to baseUri
                 loginURL = _baseUri;
@@ -144,13 +142,13 @@ public class FormAuthenticator implements ClientRequestFilter {
                 if ("JSESSIONID".equalsIgnoreCase(cookie.getName())) {
                     jsessionID = cookie.getValue();
                     if (debug) {
-                        logger.fine("......jsessionID retrieved from cookieStore: " + jsessionID);
+                        logger.info("......jsessionID retrieved from cookieStore: " + jsessionID);
                     }
                     break;
                 }
             }
 
-            logger.finest("...jsessionID=" + jsessionID);
+            logger.fine("...jsessionID=" + jsessionID);
             if (jsessionID == null) {
                 logger.warning("No JSESSIONID returned from login page!");
             }
@@ -166,7 +164,8 @@ public class FormAuthenticator implements ClientRequestFilter {
 
         } catch (IOException e) {
             // something went wrong...
-            throw new RestAPIException(this.getClass().getSimpleName(),URL_EXCEPTION,"unable to connect: "+e.toString(), e);
+            throw new RestAPIException(this.getClass().getSimpleName(), URL_EXCEPTION,
+                    "unable to connect: " + e.toString(), e);
         } finally {
             // finally reset cookei handler
             CookieHandler.setDefault(null);
@@ -202,8 +201,14 @@ public class FormAuthenticator implements ClientRequestFilter {
         if (jsessionID != null && !"".equals(jsessionID)) {
             ArrayList<Object> cookies = new ArrayList<>();
             logger.finest("......set JSESSIONID cookie");
-            Cookie n = new Cookie("JSESSIONID", jsessionID, path, domain);
-            cookies.add(n);
+            // Cookie n = new Cookie("JSESSIONID", jsessionID, path, domain);
+            Cookie cookie = new Cookie.Builder("JSESSIONID")
+                    .value(jsessionID)
+                    .path(path)
+                    .domain(domain)
+                    .build();
+
+            cookies.add(cookie);
             requestContext.getHeaders().put("Cookie", cookies);
         }
     }
@@ -218,7 +223,7 @@ public class FormAuthenticator implements ClientRequestFilter {
      */
     private String computeLoginURL(String apiURL) throws RestAPIException {
 
-        logger.finest("... computeLoginURL...");
+        logger.fine("... computeLoginURL based on " + apiURL);
         String modelURL = apiURL;
         if (!modelURL.endsWith("/")) {
             modelURL = modelURL + "/";
@@ -233,12 +238,13 @@ public class FormAuthenticator implements ClientRequestFilter {
             urlConnection.setAllowUserInteraction(false);
 
             int iLastHTTPResult = urlConnection.getResponseCode();
-
+            logger.fine("... HTTP ResponseCode = " + iLastHTTPResult);
             // read response if response was successful
             if (iLastHTTPResult >= 200 && iLastHTTPResult <= 299) {
+
                 String loginPage = readResponse(urlConnection);
                 if (loginPage.contains("j_security_check")) {
-                    logger.finest("found Login page");
+                    logger.fine("found Login page");
                     // now we search for somthing like this:
                     // <form method="post" action="/j_security_check">
                     int pos1 = loginPage.indexOf("j_security_check");
@@ -274,12 +280,12 @@ public class FormAuthenticator implements ClientRequestFilter {
                 }
             } else {
                 String error = "Error " + iLastHTTPResult + " - failed GET request from '" + modelURL + "'";
-                throw new RestAPIException(this.getClass().getSimpleName(),  URL_EXCEPTION, error);
+                throw new RestAPIException(this.getClass().getSimpleName(), URL_EXCEPTION, error);
             }
 
-        } catch ( IOException e1) {
-            String message="failed to compute login page: "+apiURL + "  -  "+e1.toString();
-            throw new RestAPIException(this.getClass().getSimpleName(),  URL_EXCEPTION, message,e1);
+        } catch (IOException e1) {
+            String message = "failed to compute login page: " + apiURL + "  -  " + e1.toString();
+            throw new RestAPIException(this.getClass().getSimpleName(), URL_EXCEPTION, message, e1);
         }
 
         return null;
