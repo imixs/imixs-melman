@@ -92,7 +92,7 @@ public class FormAuthenticator implements ClientRequestFilter {
         CookieHandler.setDefault(null);
         baseUri = _baseUri;
         if (debug) {
-            logger.info("......baseUIR= " + baseUri);
+            logger.info("Form based loign: " + baseUri);
         }
 
         // Access secure page on server. In response to this request we will receive
