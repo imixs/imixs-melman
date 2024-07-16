@@ -39,6 +39,7 @@ import org.imixs.workflow.xml.XMLDocument;
 import org.imixs.workflow.xml.XMLDocumentAdapter;
 
 import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -207,7 +208,7 @@ public class DocumentClient extends AbstractClient {
 				XMLDocument xmldoc = data.getDocument()[0];
 				return XMLDocumentAdapter.putDocument(xmldoc);
 			}
-		} catch (ProcessingException e) {
+		} catch (ProcessingException | WebApplicationException e) {
 			String message = null;
 			if (e.getCause() != null) {
 				message = e.getCause().getMessage();
