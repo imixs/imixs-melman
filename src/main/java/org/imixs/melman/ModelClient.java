@@ -1,4 +1,5 @@
 package org.imixs.melman;
+
 /*******************************************************************************
  *  Imixs Workflow 
  *  Copyright (C) 2001, 2011 Imixs Software Solutions GmbH,  
@@ -30,11 +31,7 @@ import java.util.logging.Logger;
 
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-
-import org.imixs.workflow.bpmn.BPMNModel;
 
 /**
  * This ServiceClient is a WebService REST Client which encapsulate the
@@ -59,49 +56,6 @@ public class ModelClient extends AbstractClient {
 		super(base_uri);
 	}
 
-	/**
-	 * Posts a byte array of a BPMN Model to the Model service.
-	 * 
-	 * @param data
-	 *            - byte array of a bpmn model file
-	 *
-	 * @throws RestAPIException
-	 */
-	public void postModel(BPMNModel model) throws RestAPIException {
-
-		Client client = null;
-		try {
-			client = newClient();
-			client.register(new BPMNWriter());
-			Response response = client.target(baseURI + "model/bpmn/").request(MediaType.APPLICATION_XML)
-					.post(Entity.entity(model, MediaType.APPLICATION_XML));
-
-			if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-				throw new RestAPIException(DocumentClient.class.getSimpleName(),
-						RestAPIException.RESPONSE_PROCESSING_EXCEPTION,
-						"error post BPMNModel ->" + response.getStatusInfo().getReasonPhrase());
-			}
-
-		} catch (ProcessingException e) {
-			String message = null;
-			if (e.getCause() != null) {
-				message = e.getCause().getMessage();
-			} else {
-				message = e.getMessage();
-			}
-			throw new RestAPIException(DocumentClient.class.getSimpleName(),
-					RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error post BPMNModel ->" + message, e);
-		} finally {
-			if (client != null) {
-				client.close();
-			}
-		}
-
-		return;
-	}
-	
-	
-	
 	/**
 	 * Deletes a model by its version
 	 * 
@@ -130,6 +84,5 @@ public class ModelClient extends AbstractClient {
 			}
 		}
 	}
-
 
 }
