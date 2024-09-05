@@ -64,6 +64,9 @@
 		<maven.compiler.target>11</maven.compiler.target>
 		<jakarta.version>10.0.0</jakarta.version>
 		<org.imixs.workflow.version>6.1.0-SNAPSHOT</org.imixs.workflow.version>
+		<!-- test dependencies -->
+		<junit.jupiter.version>5.9.2</junit.jupiter.version>
+		<mockito.version>5.8.0</mockito.version>
 	</properties>
 
 
@@ -145,6 +148,12 @@
 				</configuration>
 			</plugin>
 
+			<!-- Testing JUnit 5 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.2</version>
+			</plugin>
 
 		</plugins>
 	</build>
@@ -241,14 +250,53 @@
 			<version>${org.imixs.workflow.version}</version>
 		</dependency>
 
-		<!-- JUnit Tests -->
+		<!-- Testing -->
+
+		<!-- JUnit 5 Dependencies -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.1</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>${junit.jupiter.version}</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Mockito Dependencies -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>org.eclipse.parsson</groupId>
+			<artifactId>jakarta.json</artifactId>
+			<version>1.1.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>3.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>3.0.0</version>
+			<scope>test</scope>
+		</dependency>
 		<!-- JAX-RS 2.0 Test dependencies -->
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
@@ -256,7 +304,6 @@
 			<version>2.27</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-rs-client</artifactId>

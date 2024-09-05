@@ -1,12 +1,14 @@
 package org.imixs.workflow.rest;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import org.imixs.melman.BasicAuthenticator;
 import org.imixs.melman.RestAPIException;
 import org.imixs.melman.WorkflowClient;
 import org.imixs.workflow.ItemCollection;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class for workflowCLient
@@ -19,7 +21,7 @@ public class TestWorkfklowClient {
 	/**
 	 * test computeDynammicDate
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	public void testGetDocument() {
 
@@ -29,16 +31,15 @@ public class TestWorkfklowClient {
 
 		workflowCLient.registerClientRequestFilter(basicAuth);
 
-		ItemCollection document=null;
+		ItemCollection document = null;
 		try {
 			document = workflowCLient.getWorkitem("f3357f0b-20de-40ca-8aa1-4b9f43759c0b");
 		} catch (RestAPIException e) {
-			e.printStackTrace();
-			Assert.fail();
+			fail(e.getMessage());
 		}
 
 		// compare result with test data
-		Assert.assertNotNull(document);
+		assertNotNull(document);
 
 	}
 
