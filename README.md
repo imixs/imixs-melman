@@ -13,15 +13,15 @@ Using Maven add the following dependencies to your project:
 ```xml
 	<!-- JEE Dependencies -->
 	<dependency>
-		<groupId>javax</groupId>
-		<artifactId>javaee-api</artifactId>
-		<version>8.0</version>
+		<groupId>jakarta.platform</groupId>
+		<artifactId>jakarta.jakartaee-api</artifactId>
+		<version>10.0.0</version>
 		<scope>provided</scope>
 	</dependency>
 	<dependency>
 		<groupId>org.imixs.workflow</groupId>
 		<artifactId>imixs-melman</artifactId>
-		<version>1.0.17</version>
+		<version>2.1.0</version>
 		<scope>test</scope>
 	</dependency>
 ```
@@ -32,16 +32,24 @@ For jUnit test you can add the following dependencies to test Jax-RS 2.0
 ```xml
 	<!-- JAX-RS 2.0 Test dependencies -->
 	<dependency>
+		<groupId>org.glassfish.jaxb</groupId>
+		<artifactId>jaxb-runtime</artifactId>
+		<version>3.0.0</version>
+	</dependency>
+	<dependency>
+		<groupId>jakarta.xml.bind</groupId>
+		<artifactId>jakarta.xml.bind-api</artifactId>
+		<version>3.0.0</version>
+	</dependency>
+	<dependency>
 		<groupId>org.glassfish.jersey.core</groupId>
 		<artifactId>jersey-client</artifactId>
-		<version>2.30.1</version>
-		<scope>test</scope>
+		<version>2.27</version>
 	</dependency>
 	<dependency>
 		<groupId>org.apache.cxf</groupId>
 		<artifactId>cxf-rt-rs-client</artifactId>
-		<version>3.3.6</version>
-		<scope>test</scope>
+		<version>3.0.15</version>
 	</dependency>
 ```
 
