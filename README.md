@@ -54,21 +54,21 @@ These are examples how to use Imixs-Melman. For details see also the [Imixs-Work
 Each request against the Imixs-Workflow engine must be authenticated. For that reason Imixs-Melman provides some AuthenticatonRequestFilter.
 
 ```java
-	// Init the workflowClient with a basis URL
-	WorkflowClient workflowCLient = new WorkflowClient("http://localhost:8080/office-rest/");
-	// Create a basic authenticator
-	BasicAuthenticator basicAuth = new BasicAuthenticator("admin", "adminadmin");
-	// register the authenticator
-	workflowCLient.registerClientRequestFilter(basicAuth);
-	...
+// Init the workflowClient with a basis URL
+WorkflowClient workflowCLient = new WorkflowClient("http://localhost:8080/office-rest/");
+// Create a basic authenticator
+BasicAuthenticator basicAuth = new BasicAuthenticator("admin", "adminadmin");
+// register the authenticator
+workflowCLient.registerClientRequestFilter(basicAuth);
+...
 ```
 
 ## Get a Workitem by $UniqueID
 
 ```java
-	....
-	// get document by UniqueID
-	ItemCollection document = workflowCLient.getWorkitem("f3357f0b-20de-40ca-8aa1-4b9f43759c0b");
+....
+// get document by UniqueID
+ItemCollection document = workflowCLient.getWorkitem("f3357f0b-20de-40ca-8aa1-4b9f43759c0b");
 ```
 
 ## Get a Resultlist of workitems
@@ -78,14 +78,14 @@ Imixs-Melman provides a set of getter methods to receive a list of workitems.
 ### Get tasklist by Creator
 
 ```java
-	// get task list by creator with maximum 5 elements.
-	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
+// get task list by creator with maximum 5 elements.
+List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
 ```
 
 ### Get tasklist by Owner
 
 ```java
-	List<ItemCollection> documents=workflowCLient.getTaskListByOwner("admin",5,0, null);
+List<ItemCollection> documents=workflowCLient.getTaskListByOwner("admin",5,0, null);
 ```
 
 ### How to restrict the Result Set
@@ -93,17 +93,17 @@ Imixs-Melman provides a set of getter methods to receive a list of workitems.
 Per default all WorkItems are returned with all available items. To restrict the returned WorkItem data to only a subset of items the property 'items' need to be specified:
 
 ```java
-	// get task list by creator with maximum 100 elements with subset of items
-	workflowCLient.setItems("$processid,$modelversion,txtworkflowsummary");
-	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
+// get task list by creator with maximum 100 elements with subset of items
+workflowCLient.setItems("$processid,$modelversion,txtworkflowsummary");
+List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
 ```
 
 Also the page size and page index can be limited:
 
 ```java
-	workflowCLient.setPageSize(100);
-	workflowCLient.setPageIndex(0);
-	List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
+workflowCLient.setPageSize(100);
+workflowCLient.setPageIndex(0);
+List<ItemCollection> documents=workflowCLient.getTaskListByCreator("admin");
 ```
 
 ## Create a Workitem
@@ -111,14 +111,14 @@ Also the page size and page index can be limited:
 To create a workitem, an ItemCollection have to be created first:
 
 ```java
-	ItemCollection workitem=new ItemCollection();
-	workitem.model("1.0.0").task(1000).event(10);
-	workitem.replaceItemValue("type", "workitem");
-	// add some data..
-	workitem.replaceItemValue("_subject","This is some test data....");
-	// process workitem
-	workitem=workflowCLient.processWorkitem(workitem);
-	String unqiueID=workitem.getUniqueID();
+ItemCollection workitem=new ItemCollection();
+workitem.model("1.0.0").task(1000).event(10);
+workitem.replaceItemValue("type", "workitem");
+// add some data..
+workitem.replaceItemValue("_subject","This is some test data....");
+// process workitem
+workitem=workflowCLient.processWorkitem(workitem);
+String unqiueID=workitem.getUniqueID();
 ```
 
 ## Get Workflow Events by a Workitem
@@ -126,10 +126,10 @@ To create a workitem, an ItemCollection have to be created first:
 To get all valid workflow events for an existing process instance:
 
 ```java
-	// load worktiem
-	ItemCollection workitem = workflowCLient.getWorkitem(uniqueID.get(), null);
-	// load event list
-	List<ItemCollection> events = workflowCLient.getWorkflowEventsByWorkitem(workitem);
+// load worktiem
+ItemCollection workitem = workflowCLient.getWorkitem(uniqueID.get(), null);
+// load event list
+List<ItemCollection> events = workflowCLient.getWorkflowEventsByWorkitem(workitem);
 ```
 
 ## Error Handling
@@ -137,16 +137,16 @@ To get all valid workflow events for an existing process instance:
 The Melman Rest Client throws a _RestAPIException_ in case an API error occurred. The Imixs _RestAPIException_ inherits form the Imixs _WorkflowException_ and provides methods to evaluate the error context and error code. See the following example:
 
 ```java
-	...
-	try {
-		workitem = workflowCLient.processWorkitem(workitem);
-	} catch (RestAPIException e) {
-		// evaluate exception
-		Assert.assertEquals("MODEL_ERROR", e.getErrorCode());
-		Assert.assertEquals("WorkflowClient", e.getErrorContext());
-		logger.info("ErrorMessage=" + e.getMessage());
-	}
-	...
+...
+try {
+	workitem = workflowCLient.processWorkitem(workitem);
+} catch (RestAPIException e) {
+	// evaluate exception
+	Assert.assertEquals("MODEL_ERROR", e.getErrorCode());
+	Assert.assertEquals("WorkflowClient", e.getErrorContext());
+	logger.info("ErrorMessage=" + e.getMessage());
+}
+...
 ```
 
 # Insecure SSL Connections
