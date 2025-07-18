@@ -30,16 +30,16 @@ package org.imixs.melman;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.imixs.workflow.ItemCollection;
+import org.imixs.workflow.xml.XMLDocument;
+import org.imixs.workflow.xml.XMLDocumentAdapter;
+
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import org.imixs.workflow.ItemCollection;
-import org.imixs.workflow.xml.XMLDocument;
-import org.imixs.workflow.xml.XMLDocumentAdapter;
 
 /**
  * This ServiceClient is a WebService REST Client which encapsulate the
@@ -287,8 +287,17 @@ public class EventLogClient extends AbstractClient {
             topicList = topicList.substring(0, topicList.length() - 1);
         }
 
+        String uri = "/eventlog/" + topicList;
+        // eval max count (paging is not supported here)
+        if (pageSize == 0) {
+            pageSize = -1;
+        }
+        uri += "?maxCount=" + pageSize;
+
+        logger.finest("URI= " + uri);
+
         // load eventLog entries.....
-        eventLogEntries = getCustomResource("/eventlog/" + topicList);
+        eventLogEntries = getCustomResource(uri);
         logger.finest("......" + eventLogEntries.size() + " event log entries found");
 
         return eventLogEntries;
