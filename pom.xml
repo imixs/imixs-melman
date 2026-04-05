@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.imixs.workflow</groupId>
 	<artifactId>imixs-melman</artifactId>
@@ -56,6 +58,17 @@
 		</license>
 	</licenses>
 
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<jakarta.version>10.0.0</jakarta.version>
+		<org.imixs.workflow.version>6.1.0</org.imixs.workflow.version>
+		<!-- test dependencies -->
+		<junit.jupiter.version>5.9.2</junit.jupiter.version>
+		<mockito.version>5.8.0</mockito.version>
+	</properties>
+
 	<repositories>
 		<repository>
 			<id>central-portal-snapshots</id>
@@ -69,19 +82,6 @@
 			</snapshots>
 		</repository>
 	</repositories>
-
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
-		<jakarta.version>10.0.0</jakarta.version>
-		<org.imixs.workflow.version>6.1.0</org.imixs.workflow.version>
-		<!-- test dependencies -->
-		<junit.jupiter.version>5.9.2</junit.jupiter.version>
-		<mockito.version>5.8.0</mockito.version>
-	</properties>
-
 
 	<build>
 		<plugins>
@@ -109,31 +109,19 @@
 					<goals>deploy</goals>
 				</configuration>
 			</plugin>
-			<!-- release to Maven central -->
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.13</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-					<stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
-				</configuration>
-			</plugin>
 
-			<!--  maven site, doc and reporting -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<version>3.12.1</version>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 				<version>3.1.0</version>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -142,32 +130,12 @@
 					<additionalOptions>-Xdoclint:none</additionalOptions>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
 				<version>3.0.0</version>
 			</plugin>
-
-			<!--  finding the latest plugin or dependency versions
-			    mvn versions:display-plugin-updates
-			    
-			 -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>versions-maven-plugin</artifactId>
-				<version>2.5</version>
-				<configuration>
-					<generateBackupPoms>false</generateBackupPoms>
-				</configuration>
-			</plugin>
-
-			<!-- Testing JUnit 5 -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.2</version>
-			</plugin>
-
 		</plugins>
 	</build>
 
@@ -358,8 +326,6 @@
 			<version>3.1.5</version>
 			<scope>test</scope>
 		</dependency>
-
-
 	</dependencies>
 
 
