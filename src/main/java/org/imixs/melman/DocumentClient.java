@@ -340,6 +340,8 @@ public class DocumentClient extends AbstractClient {
 			uri += "&items=" + items;
 		}
 
+		// logger.fine("---queryDocument uri=" + uri);
+
 		// search.....
 		List<ItemCollection> searchResult = getCustomResource(uri);
 		return searchResult;
