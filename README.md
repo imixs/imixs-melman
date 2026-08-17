@@ -71,6 +71,50 @@ workflowCLient.registerClientRequestFilter(basicAuth);
 ...
 ```
 
+## Connect- and Read-Timeouts
+
+To prevent a client thread from blocking indefinitely on an unresponsive server, Imixs-Melman
+applies default timeouts to every REST call:
+
+- **Connect-Timeout:** 10 seconds
+- **Read-Timeout:** 5 minutes
+
+This is especially important for long-running services like EJB Timers, where a single blocked
+thread can prevent all further scheduled executions.
+
+### Overriding the Timeouts
+
+Both timeouts can be overridden per client instance:
+
+```java
+WorkflowClient workflowCLient = new WorkflowClient("http://localhost:8080/office-rest/");
+// fail fast if the connection can not be established within 5 seconds
+workflowCLient.setConnectTimeout(5, TimeUnit.SECONDS);
+// allow up to 10 minutes for a response
+workflowCLient.setReadTimeout(10, TimeUnit.MINUTES);
+```
+
+To disable a timeout entirely, set it to `0`:
+
+```java
+// wait indefinitely for a response (not recommended)
+workflowCLient.setReadTimeout(0, TimeUnit.SECONDS);
+```
+
+### Overriding the Defaults via Environment Variables
+
+The default timeouts can also be adjusted globally without any code change, by setting the
+following environment variables (values in seconds):
+
+    IMIXS_REST_CLIENT_CONNECT_TIMEOUT=5
+    IMIXS_REST_CLIENT_READ_TIMEOUT=30
+
+If a value is missing or invalid, Imixs-Melman logs a warning and falls back to the corresponding
+default (10 seconds for connect-timeout, 5 minutes for read-timeout).
+
+**Note:** An explicit call to `setConnectTimeout()` / `setReadTimeout()` in your code always takes
+precedence over the environment variable.
+
 ## Get a Workitem by $UniqueID
 
 ```java

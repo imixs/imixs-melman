@@ -33,11 +33,17 @@ import java.security.cert.X509Certificate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import org.imixs.workflow.ItemCollection;
+import org.imixs.workflow.xml.XMLDataCollection;
+import org.imixs.workflow.xml.XMLDataCollectionAdapter;
+
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
@@ -45,10 +51,6 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
-
-import org.imixs.workflow.ItemCollection;
-import org.imixs.workflow.xml.XMLDataCollection;
-import org.imixs.workflow.xml.XMLDataCollectionAdapter;
 
 /**
  * This AbstractClient provides core functionality of a JAX Rest Client and the
@@ -65,6 +67,17 @@ public abstract class AbstractClient {
 	protected String baseURI = null;
 
 	protected SSLContext sslContext = null;
+
+	// Default timeouts to prevent indefinite blocking on unresponsive servers.
+	// Can be overridden per client instance via
+	// setConnectTimeout()/setReadTimeout().
+	private static final long DEFAULT_CONNECT_TIMEOUT = 10;
+	private static final long DEFAULT_READ_TIMEOUT = 5 * 60; // 5 minutes
+	private static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
+
+	protected long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+	protected long readTimeout = DEFAULT_READ_TIMEOUT;
+	protected TimeUnit timeoutUnit = DEFAULT_TIMEOUT_UNIT;
 
 	protected List<ClientRequestFilter> requestFilterList;
 
@@ -93,6 +106,27 @@ public abstract class AbstractClient {
 					initNoopTrustManager();
 				} catch (KeyManagementException | NoSuchAlgorithmException e) {
 					logger.severe("Failed to setup noopTrustManager: " + e.getMessage());
+				}
+			}
+
+			String envReadTimeout = System.getenv("IMIXS_REST_CLIENT_READ_TIMEOUT");
+			if (envReadTimeout != null) {
+				try {
+					readTimeout = Long.parseLong(envReadTimeout.trim());
+				} catch (NumberFormatException e) {
+					logger.warning("Invalid value for IMIXS_REST_CLIENT_READ_TIMEOUT='" + envReadTimeout
+							+ "' - using default readTimeout=" + DEFAULT_READ_TIMEOUT + " " + DEFAULT_TIMEOUT_UNIT);
+				}
+			}
+
+			String envConnectTimeout = System.getenv("IMIXS_REST_CLIENT_CONNECT_TIMEOUT");
+			if (envConnectTimeout != null) {
+				try {
+					connectTimeout = Long.parseLong(envConnectTimeout.trim());
+				} catch (NumberFormatException e) {
+					logger.warning("Invalid value for IMIXS_REST_CLIENT_CONNECT_TIMEOUT='" + envConnectTimeout
+							+ "' - using default connectTimeout=" + DEFAULT_CONNECT_TIMEOUT + " "
+							+ DEFAULT_TIMEOUT_UNIT);
 				}
 			}
 		} else {
@@ -138,6 +172,16 @@ public abstract class AbstractClient {
 		this.sslContext = sslContext;
 	}
 
+	public void setConnectTimeout(long timeout, TimeUnit unit) {
+		this.connectTimeout = timeout;
+		this.timeoutUnit = unit;
+	}
+
+	public void setReadTimeout(long timeout, TimeUnit unit) {
+		this.readTimeout = timeout;
+		this.timeoutUnit = unit;
+	}
+
 	/**
 	 * Register a ClientRequestFilter instance.
 	 * 
@@ -177,20 +221,20 @@ public abstract class AbstractClient {
 	 * @return javax.ws.rs.client.Client instance
 	 */
 	public Client newClient() {
-		Client client = null;
+		ClientBuilder builder = ClientBuilder.newBuilder();
 		if (sslContext != null) {
-			logger.finest("...using custom sslContext to connect...");
-			// we use the given sslContext
-			client = ClientBuilder.newBuilder().sslContext(sslContext).build();
-		} else {
-			// create the default client
-			client = ClientBuilder.newClient();
+			builder.sslContext(sslContext);
 		}
-
+		if (connectTimeout > 0) {
+			builder.connectTimeout(connectTimeout, timeoutUnit);
+		}
+		if (readTimeout > 0) {
+			builder.readTimeout(readTimeout, timeoutUnit);
+		}
+		Client client = builder.build();
 		for (ClientRequestFilter filter : requestFilterList) {
 			client.register(filter);
 		}
-
 		return client;
 	}
 
