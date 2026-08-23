@@ -314,11 +314,15 @@ public class DocumentClient extends AbstractClient {
 	public List<ItemCollection> queryDocuments(String jpqlStatement)
 			throws RestAPIException, UnsupportedEncodingException {
 
-		// determine if the
-
 		String uri = "documents/jpql/";
-		// encode search query...
-		jpqlStatement = URLEncoder.encode(jpqlStatement, "UTF-8");
+		// Encode the query for use as a URI path segment.
+		// URLEncoder.encode() is built for application/x-www-form-urlencoded data,
+		// where a space becomes '+'. That is wrong for a path segment (RFC 3986),
+		// where a space must be '%20'. We therefore encode first and then replace
+		// the incorrectly encoded '+' with the correct '%20'.
+		// Note: this also converts any literal '+' character in the original query,
+		// which is correct here since '+' has no special meaning in JPQL syntax.
+		jpqlStatement = URLEncoder.encode(jpqlStatement, "UTF-8").replace("+", "%20");
 		uri = uri + jpqlStatement;
 
 		// test pagesize, pageindex
