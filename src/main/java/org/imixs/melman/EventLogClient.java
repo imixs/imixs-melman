@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.imixs.workflow.ItemCollection;
+import org.imixs.workflow.xml.XMLCount;
 import org.imixs.workflow.xml.XMLDocument;
 import org.imixs.workflow.xml.XMLDocumentAdapter;
 
@@ -303,4 +304,86 @@ public class EventLogClient extends AbstractClient {
         return eventLogEntries;
     }
 
+    /**
+     * Returns the total count of all eventLog entries.
+     *
+     * @return total number of eventLog entries
+     * @throws RestAPIException
+     */
+    public long countEventLogEntries() throws RestAPIException {
+        Client client = null;
+        XMLCount xmlcount = null;
+        String uri = baseURI + "eventlog/count";
+
+        try {
+            client = newClient();
+            xmlcount = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLCount.class);
+            if (xmlcount != null) {
+                return xmlcount.count;
+            }
+        } catch (ProcessingException e) {
+            String message = null;
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new RestAPIException(DocumentClient.class.getSimpleName(),
+                    RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error countDocuments ->" + message, e);
+
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+        // no data!
+        return 0;
+
+    }
+
+    /**
+     * Returns the count of eventLog entries for one or many given topics.
+     *
+     * @param topic - list of topics
+     * @return number of matching eventLog entries
+     * @throws RestAPIException
+     */
+    public long countEventLogEntries(String... topic) throws RestAPIException {
+        Client client = null;
+        XMLCount xmlcount = null;
+        String topicList = "";
+        for (String _topic : topic) {
+            topicList += _topic + "~";
+        }
+        if (topicList.endsWith("~")) {
+            topicList = topicList.substring(0, topicList.length() - 1);
+        }
+
+        String uri = baseURI + "eventlog/count/" + topicList;
+        logger.fine("countEventLogEntries: " + uri);
+
+        try {
+            client = newClient();
+            xmlcount = client.target(uri).request(MediaType.APPLICATION_XML).get(XMLCount.class);
+            if (xmlcount != null) {
+                return xmlcount.count;
+            }
+        } catch (ProcessingException e) {
+            String message = null;
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new RestAPIException(DocumentClient.class.getSimpleName(),
+                    RestAPIException.RESPONSE_PROCESSING_EXCEPTION, "error countDocuments ->" + message, e);
+
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+        // no data!
+        return 0;
+    }
 }
